@@ -346,7 +346,7 @@ def main(argv):
     time.sleep(2)
     
     if auth_loginUrl:
-        logging.debug ('Setup context')
+        logging.debug ('Setup ZAP context')
         # create a new context
         contextId = zap.context.new_context('auth')
         # include everything below the target
