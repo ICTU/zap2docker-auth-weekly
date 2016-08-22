@@ -62,6 +62,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+from pyvirtualdisplay import Display
 
 timeout = 120
 config_dict = {}
@@ -378,6 +379,9 @@ def main(argv):
             "autodetect":False
         }
         
+        display = Display(visible=0, size=(1024, 768))
+        display.start()
+        
         logging.debug ('Run the webdriver for authentication')
         driver = webdriver.Firefox()
         
@@ -393,7 +397,9 @@ def main(argv):
         driver.find_element_by_name(auth_password_field_name).clear()
         driver.find_element_by_name(auth_password_field_name).send_keys(auth_password)
         driver.find_element_by_name(auth_submit_field_name).click()
-        driver.close()
+        driver.quit()
+        
+        display.stop()
         
         for token in zap.httpsessions.session_tokens(target):
             logging.debug ('Token: ' + token)
