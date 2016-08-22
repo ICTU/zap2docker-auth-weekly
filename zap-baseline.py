@@ -396,7 +396,7 @@ def main(argv):
         driver.close()
         
         for token in zap.httpsessions.session_tokens(target):
-            logging.debug ('TOKEN FOUND: ' + token)
+            logging.debug ('Token: ' + token)
         
         logging.debug ('ACTIVE SESSION: ' + zap.httpsessions.active_session(target))
     
