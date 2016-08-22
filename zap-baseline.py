@@ -359,7 +359,7 @@ def main(argv):
         zap.context.set_context_in_scope('auth', True)
         zap.context.set_context_in_scope('Default Context', False)
         
-        print 'CREATE SESSION'
+        logging.debug ('Create an authenticated session')
         # Create a new logged on-session
         zap.httpsessions.create_empty_session(target, 'auth-session')
         # Set the session active - the session cookie is send on each request
