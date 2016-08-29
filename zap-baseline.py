@@ -409,9 +409,9 @@ def main(argv):
         display.stop()
         
         for token in zap.httpsessions.session_tokens(target):
-            logging.debug ('Token: ' + token)
+            logging.debug ('Session token found: ' + token)
         
-        logging.debug ('ACTIVE SESSION: ' + zap.httpsessions.active_session(target))
+        logging.debug ('Active session: ' + zap.httpsessions.active_session(target))
     
     # Spider target
     if auth_loginUrl:
