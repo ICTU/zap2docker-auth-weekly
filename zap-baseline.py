@@ -330,9 +330,6 @@ def main(argv):
       sys.exit(3)
 
   try:
-    #logging.debug ('Install Selenium Webdriver')
-    #subprocess.call("pip install selenium", shell=True);
-      
     # Wait for ZAP to start
     zap = ZAPv2(proxies={'http': 'http://' + zap_ip + ':' + str(port), 'https': 'http://' + zap_ip + ':' + str(port)})
     for x in range(0, timeout):
@@ -354,7 +351,7 @@ def main(argv):
         logging.debug ('auth_password_field_name=' + auth_password_field_name)
         logging.debug ('auth_submit_field_name=' + auth_submit_field_name)
         
-        logging.debug ('Setup ZAP context')
+        logging.debug ('Setup a new context')
         # create a new context
         contextId = zap.context.new_context('auth')
         # include everything below the target
@@ -364,18 +361,12 @@ def main(argv):
         # exclude all urls that end the authenticated session
         for exclude in auth_excludeUrls:
             zap.context.exclude_from_context('auth', exclude)
-            logging.debug ('Exclude ' + exclude)
+            logging.debug ('Excluded ' + exclude)
         
         # set the context in scope
         zap.context.set_context_in_scope('auth', True)
         zap.context.set_context_in_scope('Default Context', False)
-        
-        logging.debug ('Create an authenticated session')
-        # Create a new logged on-session
-        zap.httpsessions.create_empty_session(target, 'auth-session')
-        # Set the session active - the session cookie is send on each request
-        zap.httpsessions.set_active_session(target, 'auth-session')
-        
+                
         logging.debug ('Setup proxy for webdriver')
         PROXY = zap_ip + ':' + str(port)
     
@@ -404,14 +395,23 @@ def main(argv):
         driver.find_element_by_name(auth_password_field_name).clear()
         driver.find_element_by_name(auth_password_field_name).send_keys(auth_password)
         driver.find_element_by_name(auth_submit_field_name).click()
-        driver.quit()
+                
+        logging.debug ('Create an authenticated session')
+        # Create a new session
+        zap.httpsessions.create_empty_session(target, 'auth-session')
+        # Add the session cookies
+        for sessionToken in zap.httpsessions.session_tokens(target):
+            sessionCookie = driver.get_cookie(sessionToken)['value']
+            print 'Set cookie: ' + sessionToken + ' - Value: ' + sessionCookie
+            zap.httpsessions.set_session_token_value(target, 'auth-session', sessionToken, sessionCookie)
         
-        display.stop()
-        
-        for token in zap.httpsessions.session_tokens(target):
-            logging.debug ('Session token found: ' + token)
+        # Mark the session as active
+        zap.httpsessions.set_active_session(target, 'auth-session')
         
         logging.debug ('Active session: ' + zap.httpsessions.active_session(target))
+        
+        driver.quit()
+        display.stop()
     
     # Spider target
     if auth_loginUrl:
