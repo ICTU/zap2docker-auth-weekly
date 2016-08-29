@@ -297,7 +297,7 @@ def main(argv):
     # Not running in docker, so start one  
     try:
       logging.debug ('Pulling ZAP Weekly Docker image')
-      ls_output = subprocess.check_output(['docker', 'pull', 'owasp/zap2docker-weekly'])
+      ls_output = subprocess.check_output(['docker', 'pull', 'ictu/zap2docker-weekly'])
     except OSError:
       logging.warning ('Failed to run docker - is it on your path?')
       sys.exit(3)
@@ -306,7 +306,7 @@ def main(argv):
       logging.debug ('Starting ZAP')
       params = ['docker', 'run', '-u', 'zap', 
                 '-p', str(port) + ':' + str(port), 
-                '-d', 'owasp/zap2docker-weekly', 
+                '-d', 'ictu/zap2docker-weekly', 
                 'zap.sh', '-daemon', 
                 '-port', str(port), 
                 '-host', '0.0.0.0', 
@@ -347,14 +347,24 @@ def main(argv):
     time.sleep(2)
     
     if auth_loginUrl:
+        logging.debug ('auth_loginUrl=' + auth_loginUrl)
+        logging.debug ('auth_username=' + auth_username)
+        logging.debug ('auth_password=' + auth_password)
+        logging.debug ('auth_username_field_name=' + auth_username_field_name)
+        logging.debug ('auth_password_field_name=' + auth_password_field_name)
+        logging.debug ('auth_submit_field_name=' + auth_submit_field_name)
+        
         logging.debug ('Setup ZAP context')
         # create a new context
         contextId = zap.context.new_context('auth')
         # include everything below the target
-        zap.context.include_in_context('auth', target + ".*")
+        zap.context.include_in_context('auth', "\\Q" + target + "\\E.*")
+        logging.debug ('Included ' + target + ".*")
+        #zap.context.include_in_context('auth', auth_loginUrl + ".*")
         # exclude all urls that end the authenticated session
         for exclude in auth_excludeUrls:
             zap.context.exclude_from_context('auth', exclude)
+            logging.debug ('Exclude ' + exclude)
         
         # set the context in scope
         zap.context.set_context_in_scope('auth', True)
@@ -386,9 +396,6 @@ def main(argv):
         driver = webdriver.Firefox()
         
         driver.implicitly_wait(30)
-        base_url = target
-        verificationErrors = []
-        ccept_next_alert = True
         
         logging.debug ('Authenticate using webdriver')
         driver.get(auth_loginUrl)
@@ -407,10 +414,11 @@ def main(argv):
         logging.debug ('ACTIVE SESSION: ' + zap.httpsessions.active_session(target))
     
     # Spider target
-    logging.debug ('Spider ' + target)
     if auth_loginUrl:
+        logging.debug ('Authenticated spider ' + target)
         spider_scan_id = zap.spider.scan(target, contextname='auth', recurse=True)
     else:
+        logging.debug ('Spider ' + target)
         spider_scan_id = zap.spider.scan(target, recurse=True)
     time.sleep(5)
 
@@ -547,6 +555,7 @@ def main(argv):
 
   except IOError as (errno, strerror):
     logging.warning ('I/O error(' + str(errno) + '): ' + strerror)
+    logging.debug ('I/O error(' + str(errno) + '): ' + strerror)
     traceback.print_exc()
   except:
     logging.warning ('Unexpected error: ' + str(sys.exc_info()[0]))
@@ -580,5 +589,3 @@ def main(argv):
 
 if __name__ == "__main__":
   main(sys.argv[1:])
-
-
