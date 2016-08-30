@@ -2,6 +2,7 @@
 
 A customized version of the Owasp ZAP Baseline Scan Script (https://github.com/zaproxy/zaproxy/wiki/ZAP-Baseline-Scan) with support for authentication and active scanning.
 
+```
 Usage: zap-baseline.py -t <target> [options]
     -t target         target URL including the protocol, eg https://www.example.com
 Options:
@@ -25,6 +26,7 @@ Authentication:
     --auth_passwordfield   password inputfield name
     --auth_submitfield     submit button name
     --auth_exclude         comma separated list of URLs to exclude, supply all URLs causing logout
+```
 
 # Dockerfile
 
