@@ -1,6 +1,30 @@
-# Zap Baseline Scan Script with authentication and active scanning
+# ZAP Baseline Scan Script with authentication and active scanning
 
 A customized version of the Owasp ZAP Baseline Scan Script (https://github.com/zaproxy/zaproxy/wiki/ZAP-Baseline-Scan) with support for authentication and active scanning.
+
+Usage: zap-baseline.py -t <target> [options]
+    -t target         target URL including the protocol, eg https://www.example.com
+Options:
+    -c config_file    config file to use to INFO, IGNORE or FAIL warnings
+    -u config_url     URL of config file to use to INFO, IGNORE or FAIL warnings
+    -g gen_file       generate default config file (all rules set to WARN)
+    -m mins           the number of minutes to spider for (default 1)
+    -r report_html    file to write the full ZAP HTML report
+    -x report_xml     file to write the full ZAP XML report
+    -a                include the alpha passive scan rules as well
+    -d                show debug messages
+    -i                default rules not in the config file to INFO
+    -l level          minimum level to show: PASS, IGNORE, INFO, WARN or FAIL, use with -s to hide example URLs
+    -s                short output format - dont show PASSes or example URLs
+    --active_scan     after passive scan, perform active scan
+Authentication:
+    --auth_username        username
+    --auth_password        password
+    --auth_loginurl        login form URL ex. http://www.website.com/login
+    --auth_usernamefield   username inputfield name
+    --auth_passwordfield   password inputfield name
+    --auth_submitfield     submit button name
+    --auth_exclude         comma separated list of URLs to exclude, supply all URLs causing logout
 
 # Dockerfile
 
