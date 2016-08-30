@@ -92,6 +92,7 @@ def usage():
     print ('    -i                default rules not in the config file to INFO')
     print ('    -l level          minimum level to show: PASS, IGNORE, INFO, WARN or FAIL, use with -s to hide example URLs')
     print ('    -s                short output format - dont show PASSes or example URLs')
+    print ('    --active_scan     after passive scan, perform active scan')
     print ('Authentication:')
     print ('    --auth_username        username')
     print ('    --auth_password        password')
@@ -162,6 +163,7 @@ def main(argv):
   base_dir = ''
   zap_ip = 'localhost'
   
+  active_scan = False
   auth_loginUrl = ''
   auth_username = ''
   auth_password = ''
@@ -177,7 +179,7 @@ def main(argv):
   ignore_count = 0
 
   try:
-    opts, args = getopt.getopt(argv,"t:c:u:g:m:r:x:l:dais", ['auth_loginurl=', 'auth_username=', 'auth_password=', 'auth_usernamefield=', 'auth_passwordfield=', 'auth_submitfield=', 'auth_exclude='])
+    opts, args = getopt.getopt(argv,"t:c:u:g:m:r:x:l:dais", ['auth_loginurl=', 'auth_username=', 'auth_password=', 'auth_usernamefield=', 'auth_passwordfield=', 'auth_submitfield=', 'auth_exclude=', 'active_scan'])
   except getopt.GetoptError:
     usage()
     sys.exit(3)
@@ -204,6 +206,8 @@ def main(argv):
       zap_alpha = True
     elif opt == '-i':
       info_unspecified = True
+    elif opt == "--active_scan":
+      active_scan = True
     elif opt == "--auth_username":
       auth_username = arg
     elif opt == "--auth_password":
@@ -343,6 +347,8 @@ def main(argv):
     zap.urlopen(target)
     time.sleep(2)
     
+    logging.debug ('active_scan=' + str(active_scan))
+        
     if auth_loginUrl:
         logging.debug ('auth_loginUrl=' + auth_loginUrl)
         logging.debug ('auth_username=' + auth_username)
@@ -445,11 +451,9 @@ def main(argv):
       time.sleep(5)
     logging.debug ('Spider complete')
     
-    
-    print 'Spider completed'
     # Give the passive scanner a chance to finish
     time.sleep(5)
-    
+        
     for url in zap.core.urls:
         print url
 
@@ -460,6 +464,20 @@ def main(argv):
       logging.debug ('Records to passive scan : ' + zap.pscan.records_to_scan)
       time.sleep(2)
     logging.debug ('Passive scanning complete')
+    
+    if active_scan:
+        logging.debug ('Start active scan for %s' % target)
+        ascan_scan_id = zap.ascan.scan(target, True, True, 'Default Policy')
+        # Give the Active scan a chance to start
+        time.sleep(2)
+        while (int(zap.ascan.status(ascan_scan_id)) < 100):
+            logging.debug ('Active scan progress %: ' + zap.ascan.status())
+            time.sleep(2)
+    
+    logging.debug ('Active scanning complete')
+    
+    # Give the active scanner a chance to finish
+    time.sleep(5)
 
     # Print out a count of the number of urls
     num_urls = len(zap.core.urls)
