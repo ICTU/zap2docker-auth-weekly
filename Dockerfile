@@ -11,4 +11,6 @@ RUN apt-get install firefox
 RUN pip install selenium
 RUN pip install pyvirtualdisplay
 
+COPY zap-baseline-custom.py /zap/
+
 USER zap
