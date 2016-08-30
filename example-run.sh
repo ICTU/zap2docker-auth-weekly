@@ -1,7 +1,7 @@
 #!/bin/bash
 
 docker pull ictu/zap2docker-weekly
-docker run -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly /bin/bash -c "wget https://raw.githubusercontent.com/ICTU/zap-baseline/master/zap-baseline.py -O zap-baseline-auth.py;python zap-baseline-auth.py \
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly /bin/bash -c "wget https://raw.githubusercontent.com/ICTU/zap-baseline/master/zap-baseline.py -O zap-baseline-auth.py;python zap-baseline-auth.py \
 -t http://www.website.com -r testreport.html -g gen.conf -d -m 5 \
 --auth_loginurl http://www.website.com/login \
 --auth_username exampleuser \
