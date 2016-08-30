@@ -348,7 +348,8 @@ def main(argv):
     time.sleep(2)
     
     logging.debug ('active_scan=' + str(active_scan))
-        
+    
+    # Create logged in session
     if auth_loginUrl:
         logging.debug ('auth_loginUrl=' + auth_loginUrl)
         logging.debug ('auth_username=' + auth_username)
