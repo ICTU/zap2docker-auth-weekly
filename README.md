@@ -2,6 +2,14 @@
 
 A customized version of the Owasp ZAP Baseline Scan Script (https://github.com/zaproxy/zaproxy/wiki/ZAP-Baseline-Scan) with support for authentication and active scanning.
 
+The script performs the following steps:
+
+1. Perform authentication (if required)
+2. Spider the webapplication
+3. Perform a passive scan on the spidered URL's
+4. Perform an active scan (if required)
+5. Output findings to an HTML report
+
 ```
 Usage: zap-baseline.py -t <target> [options]
     -t target         target URL including the protocol, eg https://www.example.com
