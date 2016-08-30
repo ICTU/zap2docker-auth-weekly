@@ -352,16 +352,19 @@ def main(argv):
         logging.debug ('auth_submit_field_name=' + auth_submit_field_name)
         
         logging.debug ('Setup a new context')
+        
         # create a new context
         contextId = zap.context.new_context('auth')
+        
         # include everything below the target
         zap.context.include_in_context('auth', "\\Q" + target + "\\E.*")
-        logging.debug ('Included ' + target + ".*")
+        logging.debug ('Context - included ' + target + ".*")
         #zap.context.include_in_context('auth', auth_loginUrl + ".*")
+        
         # exclude all urls that end the authenticated session
         for exclude in auth_excludeUrls:
             zap.context.exclude_from_context('auth', exclude)
-            logging.debug ('Excluded ' + exclude)
+            logging.debug ('Context - excluded ' + exclude)
         
         # set the context in scope
         zap.context.set_context_in_scope('auth', True)
@@ -395,15 +398,25 @@ def main(argv):
         driver.find_element_by_name(auth_password_field_name).clear()
         driver.find_element_by_name(auth_password_field_name).send_keys(auth_password)
         driver.find_element_by_name(auth_submit_field_name).click()
-                
+        
+        # Wait for all requests to finish - not needed?
+        time.sleep(10)
+        
         logging.debug ('Create an authenticated session')
-        # Create a new session
+        
+        # Create a new session using the aquired cookies from the authentication
         zap.httpsessions.create_empty_session(target, 'auth-session')
-        # Add the session cookies
-        for sessionToken in zap.httpsessions.session_tokens(target):
-            sessionCookie = driver.get_cookie(sessionToken)['value']
-            print 'Set cookie: ' + sessionToken + ' - Value: ' + sessionCookie
-            zap.httpsessions.set_session_token_value(target, 'auth-session', sessionToken, sessionCookie)
+            
+        # add all found cookies as session cookies
+        for cookie in driver.get_cookies():
+            zap.httpsessions.set_session_token_value(target, 'auth-session', cookie['name'], cookie['value'])
+            logging.debug ('Cookie found: ' + cookie['name'] + ' - Value: ' + cookie['value'])
+
+        # Add the session tokens found by ZAP to the newly created session
+        #for sessionToken in reversed(zap.httpsessions.session_tokens(target)):
+        #    sessionCookie = driver.get_cookie(sessionToken)['value']
+        #    print 'Set cookie: ' + sessionToken + ' - Value: ' + sessionCookie
+        #    zap.httpsessions.set_session_token_value(target, 'auth-session', sessionToken, sessionCookie)
         
         # Mark the session as active
         zap.httpsessions.set_active_session(target, 'auth-session')
