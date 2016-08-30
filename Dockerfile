@@ -13,6 +13,7 @@ RUN pip install pyvirtualdisplay
 
 COPY zap-baseline-custom.py /zap/
 
-RUN chown zap:zap /zap/zap-baseline-custom.py
+RUN chown zap:zap /zap/zap-baseline-custom.py && \ 
+	chmod +x /zap/zap-baseline-custom.py
 
 USER zap
