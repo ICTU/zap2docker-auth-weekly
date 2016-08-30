@@ -9,4 +9,5 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly /bin/bash -c "w
 --auth_usernamefield j_username \
 --auth_passwordfield j_password \
 --auth_submitfield submit \
---auth_exclude http://www.website.com/j_spring_security_logout,http://www.website.com/j_spring_security_check.*"
+--auth_exclude http://www.website.com/j_spring_security_logout,http://www.website.com/j_spring_security_check.* \
+--active_scan"
