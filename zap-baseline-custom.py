@@ -455,6 +455,7 @@ def main(argv):
         break
       logging.debug ('Spider progress %: ' + zap.spider.status(spider_scan_id))
       time.sleep(5)
+      
     logging.debug ('Spider complete')
     
     # Give the passive scanner a chance to finish
@@ -475,15 +476,19 @@ def main(argv):
         logging.debug ('Start active scan for %s' % target)
         ascan_scan_id = zap.ascan.scan(target, True, True, 'Default Policy')
         # Give the Active scan a chance to start
-        time.sleep(2)
+        time.sleep(5)
+        
+        start = datetime.now()
         while (int(zap.ascan.status(ascan_scan_id)) < 100):
+            if (datetime.now() - start).seconds > ((mins * 60) + 10):
+                break
             logging.debug ('Active scan progress %: ' + zap.ascan.status())
-            time.sleep(2)
+            time.sleep(5)
     
         logging.debug ('Active scanning complete')
     
-    # Give the active scanner a chance to finish
-    time.sleep(5)
+        # Give the active scanner a chance to finish
+        time.sleep(5)
 
     # Print out a count of the number of urls
     num_urls = len(zap.core.urls)
@@ -577,7 +582,7 @@ def main(argv):
       if len(report_html) > 0:
         # Save the report
         with open(base_dir + report_html, 'w') as f:
-          f.write (zap.core.htmlreport())
+          f.write (zap.core.htmlreport().replace("<title>ZAP Scanning Report</title>", "<title>ZAP Scanning Report - " + str(datetime.now()) + "</title>"))
 
       if len(report_xml) > 0:
         # Save the report
