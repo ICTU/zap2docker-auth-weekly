@@ -390,17 +390,17 @@ def main(argv):
             "autodetect":False
         }
         
-        #profile = webdriver.FirefoxProfile()
-        #profile.accept_untrusted_certs = True
-        #profile.set_preference("browser.startup.homepage_override.mstone", "ignore")
-        #profile.set_preference("startup.homepage_welcome_url.additional", "about:blank")
+        profile = webdriver.FirefoxProfile()
+        profile.accept_untrusted_certs = True
+        profile.set_preference("browser.startup.homepage_override.mstone", "ignore")
+        profile.set_preference("startup.homepage_welcome_url.additional", "about:blank")
         
         display = Display(visible=0, size=(1024, 768))
         display.start()
         
         logging.debug ('Run the webdriver for authentication')
-        #driver = webdriver.Firefox(profile)
-        driver = webdriver.Firefox()
+        driver = webdriver.Firefox(profile)
+        #driver = webdriver.Firefox()
         
         driver.implicitly_wait(30)
         
