@@ -400,7 +400,7 @@ def main(argv):
         
         logging.debug ('Run the webdriver for authentication')
         #driver = webdriver.Firefox(profile)
-        driver = webdriver.Firefox(profile)
+        driver = webdriver.Firefox()
         
         driver.implicitly_wait(30)
         
