@@ -480,7 +480,7 @@ def main(argv):
             logging.debug ('Active scan progress %: ' + zap.ascan.status())
             time.sleep(2)
     
-    logging.debug ('Active scanning complete')
+        logging.debug ('Active scanning complete')
     
     # Give the active scanner a chance to finish
     time.sleep(5)
