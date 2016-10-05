@@ -583,7 +583,7 @@ def main(argv):
       if len(report_html) > 0:
         # Save the report
         with open(base_dir + report_html, 'w') as f:
-          f.write (zap.core.htmlreport().replace("<title>ZAP Scanning Report</title>", "<title>ZAP Scanning Report - " + str(datetime.now()) + "</title>"))
+          f.write (zap.core.htmlreport().replace("<strong>ZAP Scanning Report</strong>", "<strong>ZAP Scanning Report - " + str(datetime.now()) + "</strong>"))
 
       if len(report_xml) > 0:
         # Save the report
