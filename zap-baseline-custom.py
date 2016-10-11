@@ -406,11 +406,17 @@ def main(argv):
         
         logging.debug ('Authenticate using webdriver')
         driver.get(auth_loginUrl)
-        driver.find_element_by_name(auth_username_field_name).clear()
-        driver.find_element_by_name(auth_username_field_name).send_keys(auth_username)
-        driver.find_element_by_name(auth_password_field_name).clear()
-        driver.find_element_by_name(auth_password_field_name).send_keys(auth_password)
-        driver.find_element_by_name(auth_submit_field_name).click()
+        
+        if auth_username:
+            driver.find_element_by_name(auth_username_field_name).clear()
+            driver.find_element_by_name(auth_username_field_name).send_keys(auth_username)
+            
+        if auth_password:
+            driver.find_element_by_name(auth_password_field_name).clear()
+            driver.find_element_by_name(auth_password_field_name).send_keys(auth_password)
+            
+        if auth_submit_field_name:
+            driver.find_element_by_name(auth_submit_field_name).click()
         
         # Wait for all requests to finish - not needed?
         time.sleep(10)
