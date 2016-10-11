@@ -23,7 +23,9 @@ RUN cd /opt && \
 	ln -s /opt/firefox/firefox /usr/bin/firefox
 	
 #RUN apt-get install firefox
-RUN pip install selenium
+
+RUN pip install --upgrade pip
+RUN pip install selenium==2.53
 RUN pip install pyvirtualdisplay
 
 COPY zap-baseline-custom.py /zap/

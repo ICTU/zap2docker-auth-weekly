@@ -404,7 +404,7 @@ def main(argv):
         
         driver.implicitly_wait(30)
         
-        logging.debug ('Authenticate using webdriver')
+        logging.debug ('Authenticate using webdriver ' + auth_loginUrl)
         driver.get(auth_loginUrl)
         
         if auth_username:
@@ -480,7 +480,7 @@ def main(argv):
     logging.debug ('Passive scanning complete')
     
     if active_scan:
-        logging.debug ('Start active scan for %s' % target)
+        logging.debug ('Start active scan forl %s' % target)
         ascan_scan_id = zap.ascan.scan(target, True, True, 'Default Policy')
         # Give the Active scan a chance to start
         time.sleep(5)
