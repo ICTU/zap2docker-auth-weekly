@@ -465,7 +465,7 @@ def main(argv):
       
     logging.debug ('Spider complete')
     
-    # Give the passive scanner a chance to finish
+    # Give the passive scanner a chance to finish 
     time.sleep(5)
         
     for url in zap.core.urls:
