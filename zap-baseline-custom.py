@@ -507,6 +507,7 @@ def main(argv):
       # Retrieve the alerts
       alert_dict = {}
       alerts = zap.core.alerts()
+      print ('alerts')
       for alert in alerts:
         plugin_id = alert.get('pluginId')
         if plugin_id in blacklist:
@@ -519,6 +520,7 @@ def main(argv):
 
       all_rules = zap.pscan.scanners
       all_dict = {}
+      print ('rules')
       for rule in all_rules:
         plugin_id = rule.get('id')
         if plugin_id in blacklist:
@@ -526,6 +528,7 @@ def main(argv):
         all_dict[plugin_id] = rule.get('name')
 
       if len(generate) > 0:
+        print ('generate')
         # Create the config file
         with open(base_dir + generate, 'w') as f:
           f.write ('# zap-baseline rule configuration file\n')
@@ -537,6 +540,7 @@ def main(argv):
 
       # print out the passing rules
       pass_dict = {}
+      print ('rules')
       for rule in all_rules:
         plugin_id = rule.get('id')
         if plugin_id in blacklist:

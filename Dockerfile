@@ -33,4 +33,5 @@ COPY zap-baseline-custom.py /zap/
 RUN chown zap:zap /zap/zap-baseline-custom.py && \ 
 	chmod +x /zap/zap-baseline-custom.py
 
-USER zap
+USER root
+#USER zap
