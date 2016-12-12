@@ -425,7 +425,7 @@ def main(argv):
         profile.set_preference("browser.startup.homepage_override.mstone", "ignore")
         profile.set_preference("startup.homepage_welcome_url.additional", "about:blank")
         
-        display = Display(visible=False, size=(1024, 768))
+        display = Display(visible=True, size=(1024, 768))
         display.start()
         
         logging.debug ('Run the webdriver for authentication')
@@ -445,7 +445,7 @@ def main(argv):
                 userField.clear()
                 userField.send_keys(auth_username)
             
-            sumbitField = driver.find_element_by_xpath("//input[@type='submit' or @type='button']")
+            sumbitField = driver.find_element_by_xpath("//*[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' or @type='submit' or @type='button']")
             
             # find password field
             try:
@@ -461,7 +461,7 @@ def main(argv):
                     passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
                     passField.clear()
                     passField.send_keys(auth_password)
-                sumbitField = driver.find_element_by_xpath("//input[@type='submit' or @type='button']")
+                sumbitField = driver.find_element_by_xpath("//*[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' or @type='submit' or @type='button']")
                 sumbitField.click()
         else:           
             if auth_username_field_name:
