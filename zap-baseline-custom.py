@@ -102,6 +102,7 @@ def usage():
     print ('    --auth_username            username')
     print ('    --auth_password            password')
     print ('Manual authentication:')
+    print ('    --auth_display             display the login process (Xephyr required)')
     print ('    --auth_usernamefield       username inputfield name')
     print ('    --auth_passwordfield       password inputfield name')
     print ('    --auth_submitfield         submit button name')
@@ -174,6 +175,7 @@ def main(argv):
   
   active_scan = False
   auth_auto = False
+  auth_display = False
   auth_loginUrl = ''
   auth_username = ''
   auth_password = ''
@@ -190,7 +192,7 @@ def main(argv):
   ignore_count = 0
 
   try:
-    opts, args = getopt.getopt(argv,"t:c:u:g:m:r:w:x:l:daijsz:", ['auth_loginurl=', 'auth_username=', 'auth_auto', 'auth_password=', 'auth_usernamefield=', 'auth_passwordfield=', 'auth_firstsubmitfield=', 'auth_submitfield=', 'auth_exclude=', 'active_scan'])
+    opts, args = getopt.getopt(argv,"t:c:u:g:m:r:w:x:l:daijsz:", ['auth_display', 'auth_loginurl=', 'auth_username=', 'auth_auto', 'auth_password=', 'auth_usernamefield=', 'auth_passwordfield=', 'auth_firstsubmitfield=', 'auth_submitfield=', 'auth_exclude=', 'active_scan'])
   except getopt.GetoptError, exc:
     logging.warning ('Invalid option ' + exc.opt + ' : ' + exc.msg)
     usage()
@@ -226,6 +228,8 @@ def main(argv):
       active_scan = True
     elif opt == "--auth_auto":
       auth_auto = True
+    elif opt == '--auth_display':
+      auth_display = True
     elif opt == "--auth_username":
       auth_username = arg
     elif opt == "--auth_password":
@@ -425,7 +429,7 @@ def main(argv):
         profile.set_preference("browser.startup.homepage_override.mstone", "ignore")
         profile.set_preference("startup.homepage_welcome_url.additional", "about:blank")
         
-        display = Display(visible=True, size=(1024, 768))
+        display = Display(visible=auth_display, size=(1024, 768))
         display.start()
         
         logging.debug ('Run the webdriver for authentication')
