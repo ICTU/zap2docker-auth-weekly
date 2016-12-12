@@ -425,7 +425,7 @@ def main(argv):
         profile.set_preference("browser.startup.homepage_override.mstone", "ignore")
         profile.set_preference("startup.homepage_welcome_url.additional", "about:blank")
         
-        display = Display(visible=True, size=(1024, 768))
+        display = Display(visible=False, size=(1024, 768))
         display.start()
         
         logging.debug ('Run the webdriver for authentication')
