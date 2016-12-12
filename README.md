@@ -19,21 +19,27 @@ Options:
     -g gen_file       generate default config file (all rules set to WARN)
     -m mins           the number of minutes to spider for (default 1)
     -r report_html    file to write the full ZAP HTML report
+    -w report_md      file to write the full ZAP Wiki (Markdown) report
     -x report_xml     file to write the full ZAP XML report
     -a                include the alpha passive scan rules as well
     -d                show debug messages
     -i                default rules not in the config file to INFO
+    -j                use the Ajax spider in addition to the traditional one
     -l level          minimum level to show: PASS, IGNORE, INFO, WARN or FAIL, use with -s to hide example URLs
     -s                short output format - dont show PASSes or example URLs
-    --active_scan     after passive scan, perform active scan
+    -z zap_options    ZAP command line options e.g. -z "-config aaa=bbb -config ccc=ddd"
+    --active_scan     perform active scan
 Authentication:
-    --auth_username        username
-    --auth_password        password
-    --auth_loginurl        login form URL ex. http://www.website.com/login
-    --auth_usernamefield   username inputfield name
-    --auth_passwordfield   password inputfield name
-    --auth_submitfield     submit button name
-    --auth_exclude         comma separated list of URLs to exclude, supply all URLs causing logout
+    --auth_loginurl            login form URL ex. http://www.website.com/login
+    --auth_auto                automatically find login fields
+    --auth_username            username
+    --auth_password            password
+Manual authentication:
+    --auth_usernamefield       username inputfield name (manual login)
+    --auth_passwordfield       password inputfield name (manual login)
+    --auth_submitfield         submit button name (manual login)
+    --auth_firstsubmitfield    two page login (usernam -> first submit -> password -> submit) (manual login)
+    --auth_exclude             comma separated list of URLs to exclude, supply all URLs causing logout (manual login)
 ```
 
 # Dockerfile

@@ -101,10 +101,11 @@ def usage():
     print ('    --auth_auto                automatically find login fields')
     print ('    --auth_username            username')
     print ('    --auth_password            password')
+    print ('Manual authentication:')
     print ('    --auth_usernamefield       username inputfield name')
     print ('    --auth_passwordfield       password inputfield name')
     print ('    --auth_submitfield         submit button name')
-    print ('    --auth_firstsubmitfield    first submit button name (login in two steps username -> submit -> password -> submit)')
+    print ('    --auth_firstsubmitfield    two page login (usernam -> first submit -> password -> submit) (manual login)')
     print ('    --auth_exclude             comma separated list of URLs to exclude, supply all URLs causing logout')
 
 def load_config(config):
@@ -396,6 +397,9 @@ def main(argv):
         #zap.context.include_in_context('auth', auth_loginUrl + ".*")
         
         # exclude all urls that end the authenticated session
+        if len(auth_excludeUrls) == 0:
+            auth_excludeUrls.append('(logout|uitloggen|afmelden)')
+
         for exclude in auth_excludeUrls:
             zap.context.exclude_from_context('auth', exclude)
             logging.debug ('Context - excluded ' + exclude)
