@@ -394,7 +394,6 @@ def main(argv):
         # include everything below the target
         zap.context.include_in_context('auth', "\\Q" + target + "\\E.*")
         logging.debug ('Context - included ' + target + ".*")
-        #zap.context.include_in_context('auth', auth_loginUrl + ".*")
         
         # exclude all urls that end the authenticated session
         if len(auth_excludeUrls) == 0:
@@ -407,7 +406,7 @@ def main(argv):
         # set the context in scope
         zap.context.set_context_in_scope('auth', True)
         zap.context.set_context_in_scope('Default Context', False)
-                
+                        
         logging.debug ('Setup proxy for webdriver')
         PROXY = zap_ip + ':' + str(port)
     
@@ -439,25 +438,29 @@ def main(argv):
         
         if auth_auto:
             logging.debug ('Automatically finding login fields')
+            
+            if auth_username:
             # find username field
-            userField = driver.find_element_by_xpath("(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
-            userField.clear()
-            userField.send_keys(auth_username)
+                userField = driver.find_element_by_xpath("(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
+                userField.clear()
+                userField.send_keys(auth_username)
             
             sumbitField = driver.find_element_by_xpath("//input[@type='submit' or @type='button']")
             
             # find password field
             try:
-                passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
-                passField.clear()
-                passField.send_keys(auth_password)
+                if auth_password:
+                    passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
+                    passField.clear()
+                    passField.send_keys(auth_password)
                 sumbitField.click()
             except:
                 # login in two steps
                 sumbitField.click()
-                passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
-                passField.clear()
-                passField.send_keys(auth_password)
+                if auth_password:
+                    passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
+                    passField.clear()
+                    passField.send_keys(auth_password)
                 sumbitField = driver.find_element_by_xpath("//input[@type='submit' or @type='button']")
                 sumbitField.click()
         else:           
@@ -494,12 +497,6 @@ def main(argv):
             zap.httpsessions.set_session_token_value(target, 'auth-session', cookie['name'], cookie['value'])
             logging.debug ('Cookie found: ' + cookie['name'] + ' - Value: ' + cookie['value'])
 
-        # Add the session tokens found by ZAP to the newly created session
-        #for sessionToken in reversed(zap.httpsessions.session_tokens(target)):
-        #    sessionCookie = driver.get_cookie(sessionToken)['value']
-        #    print 'Set cookie: ' + sessionToken + ' - Value: ' + sessionCookie
-        #    zap.httpsessions.set_session_token_value(target, 'auth-session', sessionToken, sessionCookie)
-        
         # Mark the session as active
         zap.httpsessions.set_active_session(target, 'auth-session')
         
@@ -530,7 +527,7 @@ def main(argv):
     
     # Give the passive scanner a chance to finish 
     time.sleep(5)
-        
+    
     for url in zap.core.urls:
         print url
         
