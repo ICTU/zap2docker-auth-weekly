@@ -28,7 +28,7 @@
 # that via the -m parameter.
 # It will then wait for the passive scanning to finish - how long that takes
 # depends on the number of pages found.
-# It will exit with codes of:
+# It will exit with codes of:      
 #    0:    Success
 #    1:    At least 1 FAIL
 #    2:    At least one WARN and no FAILs
@@ -53,11 +53,11 @@ import sys
 import time
 import traceback
 import urllib2
-import urllib
 from datetime import datetime
 from random import randint
 from zapv2 import ZAPv2
 
+import urllib
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -86,22 +86,27 @@ def usage():
     print ('    -g gen_file       generate default config file (all rules set to WARN)')
     print ('    -m mins           the number of minutes to spider for (default 1)')
     print ('    -r report_html    file to write the full ZAP HTML report')
+    print ('    -w report_md      file to write the full ZAP Wiki (Markdown) report')
     print ('    -x report_xml     file to write the full ZAP XML report')
     print ('    -a                include the alpha passive scan rules as well')
     print ('    -d                show debug messages')
     print ('    -i                default rules not in the config file to INFO')
+    print ('    -j                use the Ajax spider in addition to the traditional one')
     print ('    -l level          minimum level to show: PASS, IGNORE, INFO, WARN or FAIL, use with -s to hide example URLs')
     print ('    -s                short output format - dont show PASSes or example URLs')
+    print ('    -z zap_options    ZAP command line options e.g. -z "-config aaa=bbb -config ccc=ddd"')
     print ('    --active_scan     after passive scan, perform active scan')
     print ('Authentication:')
-    print ('    --auth_username        username')
-    print ('    --auth_password        password')
-    print ('    --auth_loginurl        login form URL ex. http://www.website.com/login')
-    print ('    --auth_usernamefield   username inputfield name')
-    print ('    --auth_passwordfield   password inputfield name')
-    print ('    --auth_submitfield     submit button name')
-    print ('    --auth_exclude         comma separated list of URLs to exclude, supply all URLs causing logout')
-    
+    print ('    --auth_loginurl            login form URL ex. http://www.website.com/login')
+    print ('    --auth_auto                automatically find login fields')
+    print ('    --auth_username            username')
+    print ('    --auth_password            password')
+    print ('    --auth_usernamefield       username inputfield name')
+    print ('    --auth_passwordfield       password inputfield name')
+    print ('    --auth_submitfield         submit button name')
+    print ('    --auth_firstsubmitfield    first submit button name (login in two steps username -> submit -> password -> submit)')
+    print ('    --auth_exclude             comma separated list of URLs to exclude, supply all URLs causing logout')
+
 def load_config(config):
   for line in config:
     if not line.startswith('#') and len(line) > 1:
@@ -156,20 +161,25 @@ def main(argv):
   port = 0
   detailed_output = True
   report_html = ''
+  report_md = ''
   report_xml = ''
   target = ''
   zap_alpha = False
   info_unspecified = False
+  ajax = False
   base_dir = ''
   zap_ip = 'localhost'
+  zap_options = ''
   
   active_scan = False
+  auth_auto = False
   auth_loginUrl = ''
   auth_username = ''
   auth_password = ''
   auth_username_field_name = ''
   auth_password_field_name = ''
   auth_submit_field_name = ''
+  auth_first_submit_field_name = ''
   auth_excludeUrls = [];
 
   pass_count = 0
@@ -179,8 +189,9 @@ def main(argv):
   ignore_count = 0
 
   try:
-    opts, args = getopt.getopt(argv,"t:c:u:g:m:r:x:l:dais", ['auth_loginurl=', 'auth_username=', 'auth_password=', 'auth_usernamefield=', 'auth_passwordfield=', 'auth_submitfield=', 'auth_exclude=', 'active_scan'])
-  except getopt.GetoptError:
+    opts, args = getopt.getopt(argv,"t:c:u:g:m:r:w:x:l:daijsz:", ['auth_loginurl=', 'auth_username=', 'auth_auto', 'auth_password=', 'auth_usernamefield=', 'auth_passwordfield=', 'auth_firstsubmitfield=', 'auth_submitfield=', 'auth_exclude=', 'active_scan'])
+  except getopt.GetoptError, exc:
+    logging.warning ('Invalid option ' + exc.opt + ' : ' + exc.msg)
     usage()
     sys.exit(3)
 
@@ -200,14 +211,20 @@ def main(argv):
       mins = int(arg)
     elif opt == '-r':
       report_html = arg
+    elif opt == '-w':
+      report_md = arg
     elif opt == '-x':
       report_xml = arg
     elif opt == '-a':
       zap_alpha = True
     elif opt == '-i':
       info_unspecified = True
+    elif opt == '-j':
+      ajax = True
     elif opt == "--active_scan":
       active_scan = True
+    elif opt == "--auth_auto":
+      auth_auto = True
     elif opt == "--auth_username":
       auth_username = arg
     elif opt == "--auth_password":
@@ -220,6 +237,8 @@ def main(argv):
       auth_password_field_name = arg
     elif opt == "--auth_submitfield":
       auth_submit_field_name = arg
+    elif opt == "--auth_firstsubmitfield":
+      auth_first_submit_field_name = arg
     elif opt == "--auth_exclude":
       auth_excludeUrls = arg.split(',')
     elif opt == '-l':
@@ -229,6 +248,8 @@ def main(argv):
         logging.warning ('Level must be one of ' + str(levels))
         usage()
         sys.exit(3)
+    elif opt == '-z':
+      zap_options = arg
       
     elif opt == '-s':
       detailed_output = False
@@ -236,7 +257,7 @@ def main(argv):
   # Check target supplied and ok
   if len(target) == 0:
     usage()
-    sys.exit(3) 
+    sys.exit(3)
 
   if not (target.startswith('http://') or target.startswith('https://')):
     logging.warning ('Target must start with \'http://\' or \'https://\'')
@@ -278,7 +299,7 @@ def main(argv):
   if running_in_docker:
     try:
       logging.debug ('Starting ZAP')
-      params = ['zap.sh', '-daemon', 
+      params = ['zap-x.sh', '-daemon', 
                 '-port', str(port), 
                 '-host', '0.0.0.0', 
                 '-config', 'api.disablekey=true', 
@@ -289,6 +310,10 @@ def main(argv):
       if (zap_alpha):
         params.append('-addoninstall')
         params.append('pscanrulesAlpha')
+        
+      if len(zap_options) > 0:
+        for zap_opt in zap_options.split(" "):
+          params.append(zap_opt)
 
       with open('zap.out', "w") as outfile:
         subprocess.Popen(params, stdout=outfile)
@@ -311,7 +336,7 @@ def main(argv):
       params = ['docker', 'run', '-u', 'zap', 
                 '-p', str(port) + ':' + str(port), 
                 '-d', 'ictu/zap2docker-weekly', 
-                'zap.sh', '-daemon', 
+                'zap-x.sh', '-daemon', 
                 '-port', str(port), 
                 '-host', '0.0.0.0', 
                 '-config', 'api.disablekey=true', 
@@ -321,6 +346,10 @@ def main(argv):
       if (zap_alpha):
         params.append('-addoninstall')
         params.append('pscanrulesAlpha')
+        
+      if len(zap_options) > 0:
+        for zap_opt in zap_options.split(" "):
+          params.append(zap_opt)
 
       cid = subprocess.check_output(params).rstrip()
       logging.debug ('Docker CID: ' + cid)
@@ -346,8 +375,6 @@ def main(argv):
     # Access the target
     zap.urlopen(target)
     time.sleep(2)
-    
-    logging.debug ('active_scan=' + str(active_scan))
     
     # Create logged in session
     if auth_loginUrl:
@@ -395,28 +422,60 @@ def main(argv):
         profile.set_preference("browser.startup.homepage_override.mstone", "ignore")
         profile.set_preference("startup.homepage_welcome_url.additional", "about:blank")
         
-        display = Display(visible=0, size=(1024, 768))
+        display = Display(visible=False, size=(1024, 768))
         display.start()
         
         logging.debug ('Run the webdriver for authentication')
         driver = webdriver.Firefox(profile)
-        #driver = webdriver.Firefox()
         
         driver.implicitly_wait(30)
         
         logging.debug ('Authenticate using webdriver ' + auth_loginUrl)
         driver.get(auth_loginUrl)
         
-        if auth_username:
-            driver.find_element_by_name(auth_username_field_name).clear()
-            driver.find_element_by_name(auth_username_field_name).send_keys(auth_username)
+        if auth_auto:
+            logging.debug ('Automatically finding login fields')
+            # find username field
+            userField = driver.find_element_by_xpath("(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
+            userField.clear()
+            userField.send_keys(auth_username)
             
-        if auth_password:
-            driver.find_element_by_name(auth_password_field_name).clear()
-            driver.find_element_by_name(auth_password_field_name).send_keys(auth_password)
+            sumbitField = driver.find_element_by_xpath("//input[@type='submit' or @type='button']")
             
-        if auth_submit_field_name:
-            driver.find_element_by_name(auth_submit_field_name).click()
+            # find password field
+            try:
+                passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
+                passField.clear()
+                passField.send_keys(auth_password)
+                sumbitField.click()
+            except:
+                # login in two steps
+                sumbitField.click()
+                passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
+                passField.clear()
+                passField.send_keys(auth_password)
+                sumbitField = driver.find_element_by_xpath("//input[@type='submit' or @type='button']")
+                sumbitField.click()
+        else:           
+            if auth_username_field_name:
+                driver.find_element_by_name(auth_username_field_name).clear()
+                driver.find_element_by_name(auth_username_field_name).send_keys(auth_username)
+                
+            if auth_first_submit_field_name:
+                try:
+                    driver.find_element_by_name(auth_first_submit_field_name).click()
+                except:
+                    driver.find_element_by_xpath("//input[@type='submit']").click()
+                
+            if auth_password_field_name:
+                driver.find_element_by_name(auth_password_field_name).clear()
+                driver.find_element_by_name(auth_password_field_name).send_keys(auth_password)
+                
+            if auth_submit_field_name:
+                try:
+                    driver.find_element_by_name(auth_submit_field_name).click()
+                except:
+                    driver.find_element_by_xpath("//input[@type='submit']").click()
         
         # Wait for all requests to finish - not needed?
         time.sleep(10)
@@ -470,6 +529,18 @@ def main(argv):
         
     for url in zap.core.urls:
         print url
+        
+    if (ajax):
+      # Ajax Spider the target as well
+      logging.debug ('AjaxSpider ' + target)
+      zap.ajaxSpider.set_option_max_duration(str(mins))
+      zap.ajaxSpider.scan(target)
+      time.sleep(5)
+
+      while (zap.ajaxSpider.status == 'running'):
+        logging.debug ('Ajax Spider running, found urls: ' + zap.ajaxSpider.number_of_results)
+        time.sleep(5)
+      logging.debug ('Ajax Spider complete')
 
     # Wait for passive scanning to complete
     rtc = zap.pscan.records_to_scan
@@ -504,23 +575,26 @@ def main(argv):
     else:
       if detailed_output:
         print ('Total of ' + str(len(zap.core.urls)) + ' URLs')
-      # Retrieve the alerts
+      # Retrieve the alerts using paging in case there are lots of them
+      st = 0
+      pg = 100
       alert_dict = {}
-      alerts = zap.core.alerts()
-      print ('alerts')
-      for alert in alerts:
-        plugin_id = alert.get('pluginId')
-        if plugin_id in blacklist:
-          continue
-        if not is_in_scope(plugin_id, alert.get('url')):
-          continue
-        if (not alert_dict.has_key(plugin_id)):
-          alert_dict[plugin_id] = []
-        alert_dict[plugin_id].append(alert)
+      alerts = zap.core.alerts(start=st, count=pg)
+      while len(alerts) > 0:
+        for alert in alerts:
+          plugin_id = alert.get('pluginId')
+          if plugin_id in blacklist:
+            continue
+          if not is_in_scope(plugin_id, alert.get('url')):
+            continue
+          if (not alert_dict.has_key(plugin_id)):
+            alert_dict[plugin_id] = []
+          alert_dict[plugin_id].append(alert)
+        st += pg
+        alerts = zap.core.alerts(start=st, count=pg)
 
       all_rules = zap.pscan.scanners
       all_dict = {}
-      print ('rules')
       for rule in all_rules:
         plugin_id = rule.get('id')
         if plugin_id in blacklist:
@@ -528,7 +602,6 @@ def main(argv):
         all_dict[plugin_id] = rule.get('name')
 
       if len(generate) > 0:
-        print ('generate')
         # Create the config file
         with open(base_dir + generate, 'w') as f:
           f.write ('# zap-baseline rule configuration file\n')
@@ -540,7 +613,6 @@ def main(argv):
 
       # print out the passing rules
       pass_dict = {}
-      print ('rules')
       for rule in all_rules:
         plugin_id = rule.get('id')
         if plugin_id in blacklist:
@@ -595,6 +667,11 @@ def main(argv):
         with open(base_dir + report_html, 'w') as f:
           f.write (zap.core.htmlreport().replace("<strong>ZAP Scanning Report</strong>", "<strong>ZAP Scanning Report - " + str(datetime.now()) + "</strong>"))
 
+      if len(report_md) > 0:
+        # Save the report
+        with open(base_dir + report_md, 'w') as f:
+          f.write (zap.core.mdreport())
+
       if len(report_xml) > 0:
         # Save the report
         with open(base_dir + report_xml, 'w') as f:
@@ -607,8 +684,7 @@ def main(argv):
     zap.core.shutdown()
 
   except IOError as (errno, strerror):
-    logging.warning ('I/O error(' + str(errno) + '): ' + strerror)
-    logging.debug ('I/O error(' + str(errno) + '): ' + strerror)
+    logging.warning ('I/O error(' + str(errno) + '): ' + str(strerror))
     traceback.print_exc()
   except:
     logging.warning ('Unexpected error: ' + str(sys.exc_info()[0]))
