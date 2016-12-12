@@ -327,7 +327,7 @@ def main(argv):
     # Not running in docker, so start one  
     try:
       logging.debug ('Pulling ZAP Weekly Docker image')
-      ls_output = subprocess.check_output(['docker', 'pull', 'ictu/zap2docker-weekly'])
+      ls_output = subprocess.check_output(['docker', 'pull', 'owasp/zap2docker-weekly'])
     except OSError:
       logging.warning ('Failed to run docker - is it on your path?')
       sys.exit(3)
@@ -336,7 +336,7 @@ def main(argv):
       logging.debug ('Starting ZAP')
       params = ['docker', 'run', '-u', 'zap', 
                 '-p', str(port) + ':' + str(port), 
-                '-d', 'ictu/zap2docker-weekly', 
+                '-d', 'owasp/zap2docker-weekly', 
                 'zap-x.sh', '-daemon', 
                 '-port', str(port), 
                 '-host', '0.0.0.0', 
@@ -425,7 +425,7 @@ def main(argv):
         profile.set_preference("browser.startup.homepage_override.mstone", "ignore")
         profile.set_preference("startup.homepage_welcome_url.additional", "about:blank")
         
-        display = Display(visible=False, size=(1024, 768))
+        display = Display(visible=True, size=(1024, 768))
         display.start()
         
         logging.debug ('Run the webdriver for authentication')
@@ -485,7 +485,7 @@ def main(argv):
                     driver.find_element_by_xpath("//input[@type='submit']").click()
         
         # Wait for all requests to finish - not needed?
-        time.sleep(10)
+        time.sleep(30)
         
         logging.debug ('Create an authenticated session')
         
