@@ -338,7 +338,7 @@ def main(argv):
 
     try:        
       logging.debug ('Starting ZAP')
-      params = ['docker', 'run', '-u', 'zap', 
+      params = ['docker', 'run', '-u', 'zap',
                 '-p', str(port) + ':' + str(port), 
                 '-d', 'owasp/zap2docker-weekly', 
                 'zap-x.sh', '-daemon', 
@@ -378,18 +378,14 @@ def main(argv):
         time.sleep(1)
 
     # Access the target
-    zap.urlopen(target)
+    try:
+        zap.urlopen(target)
+    except:
+        logging.debug ('zap open error')
     time.sleep(2)
     
     # Create logged in session
     if auth_loginUrl:
-        logging.debug ('auth_loginUrl=' + auth_loginUrl)
-        logging.debug ('auth_username=' + auth_username)
-        logging.debug ('auth_password=' + auth_password)
-        logging.debug ('auth_username_field_name=' + auth_username_field_name)
-        logging.debug ('auth_password_field_name=' + auth_password_field_name)
-        logging.debug ('auth_submit_field_name=' + auth_submit_field_name)
-        
         logging.debug ('Setup a new context')
         
         # create a new context
@@ -438,18 +434,17 @@ def main(argv):
         driver.implicitly_wait(30)
         
         logging.debug ('Authenticate using webdriver ' + auth_loginUrl)
-        driver.get(auth_loginUrl)
         
+        driver.get(auth_loginUrl)
+                
         if auth_auto:
             logging.debug ('Automatically finding login fields')
-            
+        
             if auth_username:
             # find username field
                 userField = driver.find_element_by_xpath("(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
                 userField.clear()
                 userField.send_keys(auth_username)
-            
-            sumbitField = driver.find_element_by_xpath("//*[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' or @type='submit' or @type='button']")
             
             # find password field
             try:
@@ -457,15 +452,19 @@ def main(argv):
                     passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
                     passField.clear()
                     passField.send_keys(auth_password)
+            
+                sumbitField = driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
                 sumbitField.click()
             except:
+                logging.debug ('Did not find password field - auth in 2 steps')
                 # login in two steps
+                sumbitField = driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
                 sumbitField.click()
                 if auth_password:
                     passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
                     passField.clear()
                     passField.send_keys(auth_password)
-                sumbitField = driver.find_element_by_xpath("//*[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' or @type='submit' or @type='button']")
+                sumbitField = driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
                 sumbitField.click()
         else:           
             if auth_username_field_name:
