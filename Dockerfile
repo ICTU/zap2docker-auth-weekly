@@ -1,7 +1,7 @@
 # Customized Owasp ZAP Dockerfile with support for authentication
 
 FROM owasp/zap2docker-weekly
-MAINTAINER Dick Snel <dick.snel@ictu.nl>
+MAINTAINER Alwin Peppels <alwin.peppels@ictu.nl>
 
 USER root
 
