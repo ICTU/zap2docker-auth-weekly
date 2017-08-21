@@ -687,7 +687,8 @@ def main(argv):
     # Stop ZAP
     zap.core.shutdown()
 
-  except IOError as (errno, strerror):
+  except IOError as e:
+    errno, strerror = e.args
     logging.warning ('I/O error(' + str(errno) + '): ' + str(strerror))
     traceback.print_exc()
   except:
