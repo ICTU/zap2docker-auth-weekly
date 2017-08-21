@@ -688,8 +688,7 @@ def main(argv):
     zap.core.shutdown()
 
   except IOError as e:
-    errno, strerror = e.args
-    logging.warning ('I/O error(' + str(errno) + '): ' + str(strerror))
+    logging.warning ('I/O error: ' + str(e))
     traceback.print_exc()
   except:
     logging.warning ('Unexpected error: ' + str(sys.exc_info()[0]))
