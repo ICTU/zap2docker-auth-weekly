@@ -307,6 +307,7 @@ def main(argv):
       params = ['zap-x.sh', '-daemon', 
                 '-port', str(port), 
                 '-host', '0.0.0.0', 
+                '-config', 'api.addrs.addr.name=0:0:0:0:0:0:0:1',
                 '-config', 'api.disablekey=true', 
                 '-config', 'spider.maxDuration=' + str(mins),
                 '-addonupdate', 
@@ -344,6 +345,7 @@ def main(argv):
                 'zap-x.sh', '-daemon', 
                 '-port', str(port), 
                 '-host', '0.0.0.0', 
+                '-config', 'api.addrs.addr.name=0:0:0:0:0:0:0:1',
                 '-config', 'api.disablekey=true', 
                 '-config', 'spider.maxDuration=' + str(mins),
                 '-addonupdate']
