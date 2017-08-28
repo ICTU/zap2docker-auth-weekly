@@ -307,8 +307,10 @@ def main(argv):
       params = ['zap-x.sh', '-daemon', 
                 '-port', str(port), 
                 '-host', '0.0.0.0', 
-                '-config', 'api.addrs.addr.name=.*',
-                '-config', 'api.addrs.addr.regex=true',
+                '-config', 'api.addrs.addr(0).name=0:0:0:0:0:0:0:1',
+                '-config', 'api.addrs.addr(1).name=zap',
+                '-config', 'api.addrs.addr(0).name=localhost',
+                '-config', 'api.addrs.addr(0).name=127.0.0.1',
                 '-config', 'api.disablekey=true', 
                 '-config', 'spider.maxDuration=' + str(mins),
                 '-addonupdate', 
@@ -346,8 +348,10 @@ def main(argv):
                 'zap-x.sh', '-daemon', 
                 '-port', str(port), 
                 '-host', '0.0.0.0', 
-                '-config', 'api.addrs.addr.name=.*',
-                '-config', 'api.addrs.addr.regex=true',
+                '-config', 'api.addrs.addr(0).name=0:0:0:0:0:0:0:1',
+                '-config', 'api.addrs.addr(1).name=zap',
+                '-config', 'api.addrs.addr(0).name=localhost',
+                '-config', 'api.addrs.addr(0).name=127.0.0.1',
                 '-config', 'api.disablekey=true', 
                 '-config', 'spider.maxDuration=' + str(mins),
                 '-addonupdate']
@@ -673,7 +677,7 @@ def main(argv):
       if len(report_html) > 0:
         # Save the report
         with open(base_dir + report_html, 'w') as f:
-          f.write (zap.core.htmlreport().replace("<strong>ZAP Scanning Report</strong>", "<strong>ZAP Scanning Report - " + str(datetime.now()) + "</strong>"))
+          f.write (zap.core.htmlreport().encode('utf-8').replace("<strong>ZAP Scanning Report</strong>", "<strong>ZAP Scanning Report - " + str(datetime.now()) + "</strong>"))
 
       if len(report_md) > 0:
         # Save the report
