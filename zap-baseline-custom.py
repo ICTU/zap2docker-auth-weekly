@@ -28,7 +28,7 @@
 # that via the -m parameter.
 # It will then wait for the passive scanning to finish - how long that takes
 # depends on the number of pages found.
-# It will exit with codes of:      
+# It will exit with codes of:
 #    0:    Success
 #    1:    At least 1 FAIL
 #    2:    At least one WARN and no FAILs
@@ -141,7 +141,7 @@ def is_in_scope(plugin_id, url):
         #print('OOS Ignoring ' + str(plugin_id) + ' ' + url)
         return False
     #print 'Not in ' + plugin_id + ' dict'
-  return True  
+  return True
 
 def print_rule(action, alert_list, detailed_output, user_msg):
   if min_level > levels.index(action):
@@ -172,7 +172,7 @@ def main(argv):
   base_dir = ''
   zap_ip = 'localhost'
   zap_options = ''
-  
+
   active_scan = False
   auth_auto = False
   auth_display = False
@@ -255,7 +255,7 @@ def main(argv):
         sys.exit(3)
     elif opt == '-z':
       zap_options = arg
-      
+
     elif opt == '-s':
       detailed_output = False
 
@@ -273,11 +273,11 @@ def main(argv):
     base_dir = '/zap/wrk/'
     if len(config_file) > 0 or len(generate) > 0 or len(report_html) > 0 or len(report_xml) > 0:
       # Check directory has been mounted
-      if not os.path.exists(base_dir): 
+      if not os.path.exists(base_dir):
         logging.warning ('A file based option has been specified but the directory \'/zap/wrk\' is not mounted ')
         usage()
         sys.exit(3)
-    
+
 
   # Choose a random 'ephemeral' port and check its available
   while True:
@@ -304,22 +304,22 @@ def main(argv):
   if running_in_docker:
     try:
       logging.debug ('Starting ZAP')
-      params = ['zap-x.sh', '-daemon', 
-                '-port', str(port), 
-                '-host', '0.0.0.0', 
+      params = ['zap-x.sh', '-daemon',
+                '-port', str(port),
+                '-host', '0.0.0.0',
                 '-config', 'api.addrs.addr(0).name=0:0:0:0:0:0:0:1',
                 '-config', 'api.addrs.addr(1).name=zap',
                 '-config', 'api.addrs.addr(2).name=localhost',
                 '-config', 'api.addrs.addr(3).name=127.0.0.1',
-                '-config', 'api.disablekey=true', 
+                '-config', 'api.disablekey=true',
                 '-config', 'spider.maxDuration=' + str(mins),
-                '-addonupdate', 
+                '-addonupdate',
                 '-addoninstall', 'pscanrulesBeta']    # In case we're running in the stable container
 
       if (zap_alpha):
         params.append('-addoninstall')
         params.append('pscanrulesAlpha')
-        
+
       if len(zap_options) > 0:
         for zap_opt in zap_options.split(" "):
           params.append(zap_opt)
@@ -330,9 +330,9 @@ def main(argv):
     except OSError:
       logging.warning ('Failed to start ZAP :(')
       sys.exit(3)
-  
+
   else:
-    # Not running in docker, so start one  
+    # Not running in docker, so start one
     try:
       logging.debug ('Pulling ZAP Weekly Docker image')
       ls_output = subprocess.check_output(['docker', 'pull', 'owasp/zap2docker-weekly'])
@@ -340,26 +340,26 @@ def main(argv):
       logging.warning ('Failed to run docker - is it on your path?')
       sys.exit(3)
 
-    try:        
+    try:
       logging.debug ('Starting ZAP')
       params = ['docker', 'run', '-u', 'zap',
-                '-p', str(port) + ':' + str(port), 
-                '-d', 'owasp/zap2docker-weekly', 
-                'zap-x.sh', '-daemon', 
-                '-port', str(port), 
-                '-host', '0.0.0.0', 
+                '-p', str(port) + ':' + str(port),
+                '-d', 'owasp/zap2docker-weekly',
+                'zap-x.sh', '-daemon',
+                '-port', str(port),
+                '-host', '0.0.0.0',
                 '-config', 'api.addrs.addr(0).name=0:0:0:0:0:0:0:1',
                 '-config', 'api.addrs.addr(1).name=zap',
                 '-config', 'api.addrs.addr(2).name=localhost',
                 '-config', 'api.addrs.addr(3).name=127.0.0.1',
-                '-config', 'api.disablekey=true', 
+                '-config', 'api.disablekey=true',
                 '-config', 'spider.maxDuration=' + str(mins),
                 '-addonupdate']
 
       if (zap_alpha):
         params.append('-addoninstall')
         params.append('pscanrulesAlpha')
-        
+
       if len(zap_options) > 0:
         for zap_opt in zap_options.split(" "):
           params.append(zap_opt)
@@ -391,18 +391,18 @@ def main(argv):
     except:
         logging.debug ('zap open error')
     time.sleep(2)
-    
+
     # Create logged in session
     if auth_loginUrl:
         logging.debug ('Setup a new context')
-        
+
         # create a new context
         contextId = zap.context.new_context('auth')
-        
+
         # include everything below the target
         zap.context.include_in_context('auth', "\\Q" + target + "\\E.*")
         logging.debug ('Context - included ' + target + ".*")
-        
+
         # exclude all urls that end the authenticated session
         if len(auth_excludeUrls) == 0:
             auth_excludeUrls.append('(logout|uitloggen|afmelden)')
@@ -410,14 +410,14 @@ def main(argv):
         for exclude in auth_excludeUrls:
             zap.context.exclude_from_context('auth', exclude)
             logging.debug ('Context - excluded ' + exclude)
-        
+
         # set the context in scope
         zap.context.set_context_in_scope('auth', True)
         zap.context.set_context_in_scope('Default Context', False)
-                        
+
         logging.debug ('Setup proxy for webdriver')
         PROXY = zap_ip + ':' + str(port)
-    
+
         webdriver.DesiredCapabilities.FIREFOX['proxy'] = {
             "httpProxy":PROXY,
             "ftpProxy":PROXY,
@@ -427,40 +427,40 @@ def main(argv):
             "class":"org.openqa.selenium.Proxy",
             "autodetect":False
         }
-        
+
         profile = webdriver.FirefoxProfile()
         profile.accept_untrusted_certs = True
         profile.set_preference("browser.startup.homepage_override.mstone", "ignore")
         profile.set_preference("startup.homepage_welcome_url.additional", "about:blank")
-        
+
         display = Display(visible=auth_display, size=(1024, 768))
         display.start()
-        
+
         logging.debug ('Run the webdriver for authentication')
         driver = webdriver.Firefox(profile)
-        
+
         driver.implicitly_wait(30)
-        
+
         logging.debug ('Authenticate using webdriver ' + auth_loginUrl)
-        
+
         driver.get(auth_loginUrl)
-                
+
         if auth_auto:
             logging.debug ('Automatically finding login fields')
-        
+
             if auth_username:
             # find username field
                 userField = driver.find_element_by_xpath("(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
                 userField.clear()
                 userField.send_keys(auth_username)
-            
+
             # find password field
             try:
                 if auth_password:
                     passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
                     passField.clear()
                     passField.send_keys(auth_password)
-            
+
                 sumbitField = driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
                 sumbitField.click()
             except:
@@ -474,35 +474,35 @@ def main(argv):
                     passField.send_keys(auth_password)
                 sumbitField = driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
                 sumbitField.click()
-        else:           
+        else:
             if auth_username_field_name:
                 driver.find_element_by_name(auth_username_field_name).clear()
                 driver.find_element_by_name(auth_username_field_name).send_keys(auth_username)
-                
+
             if auth_first_submit_field_name:
                 try:
                     driver.find_element_by_name(auth_first_submit_field_name).click()
                 except:
                     driver.find_element_by_xpath("//input[@type='submit']").click()
-                
+
             if auth_password_field_name:
                 driver.find_element_by_name(auth_password_field_name).clear()
                 driver.find_element_by_name(auth_password_field_name).send_keys(auth_password)
-                
+
             if auth_submit_field_name:
                 try:
                     driver.find_element_by_name(auth_submit_field_name).click()
                 except:
                     driver.find_element_by_xpath("//input[@type='submit']").click()
-        
+
         # Wait for all requests to finish - not needed?
         time.sleep(30)
-        
+
         logging.debug ('Create an authenticated session')
-        
+
         # Create a new session using the aquired cookies from the authentication
         zap.httpsessions.create_empty_session(target, 'auth-session')
-            
+
         # add all found cookies as session cookies
         for cookie in driver.get_cookies():
             zap.httpsessions.set_session_token_value(target, 'auth-session', cookie['name'], cookie['value'])
@@ -510,12 +510,12 @@ def main(argv):
 
         # Mark the session as active
         zap.httpsessions.set_active_session(target, 'auth-session')
-        
+
         logging.debug ('Active session: ' + zap.httpsessions.active_session(target))
-        
+
         driver.quit()
         display.stop()
-    
+
     # Spider target
     if auth_loginUrl:
         logging.debug ('Authenticated spider ' + target)
@@ -533,15 +533,15 @@ def main(argv):
         break
       logging.debug ('Spider progress %: ' + zap.spider.status(spider_scan_id))
       time.sleep(5)
-      
+
     logging.debug ('Spider complete')
-    
-    # Give the passive scanner a chance to finish 
+
+    # Give the passive scanner a chance to finish
     time.sleep(5)
-    
-    for url in zap.core.urls:
+
+    for url in zap.core.urls():
         print url
-        
+
     if (ajax):
       # Ajax Spider the target as well
       logging.debug ('AjaxSpider ' + target)
@@ -561,32 +561,32 @@ def main(argv):
       logging.debug ('Records to passive scan : ' + zap.pscan.records_to_scan)
       time.sleep(2)
     logging.debug ('Passive scanning complete')
-    
+
     if active_scan:
         logging.debug ('Start active scan forl %s' % target)
         ascan_scan_id = zap.ascan.scan(target, True, True, 'Default Policy')
         # Give the Active scan a chance to start
         time.sleep(5)
-        
+
         start = datetime.now()
         while (int(zap.ascan.status(ascan_scan_id)) < 100):
             if (datetime.now() - start).seconds > ((mins * 60) + 10):
                 break
             logging.debug ('Active scan progress %: ' + zap.ascan.status())
             time.sleep(5)
-    
+
         logging.debug ('Active scanning complete')
-    
+
         # Give the active scanner a chance to finish
         time.sleep(5)
 
     # Print out a count of the number of urls
-    num_urls = len(zap.core.urls)
+    num_urls = len(zap.core.urls())
     if (num_urls == 0):
       logging.warning('No URLs found - is the target URL accessible? Local services may not be accessible from the Docker container')
     else:
       if detailed_output:
-        print ('Total of ' + str(len(zap.core.urls)) + ' URLs')
+        print ('Total of ' + str(len(zap.core.urls())) + ' URLs')
       # Retrieve the alerts using paging in case there are lots of them
       st = 0
       pg = 100
@@ -673,7 +673,7 @@ def main(argv):
             user_msg = config_msg[key]
           print_rule(config_dict[key], alert_list, detailed_output, user_msg)
           fail_count += 1
-          
+
       if len(report_html) > 0:
         # Save the report
         with open(base_dir + report_html, 'w') as f:
@@ -689,7 +689,7 @@ def main(argv):
         with open(base_dir + report_xml, 'w') as f:
           f.write (zap.core.xmlreport())
 
-      print ('FAIL: ' + str(fail_count) + '\tWARN: ' + str(warn_count) + '\tINFO: ' + str(info_count) +  
+      print ('FAIL: ' + str(fail_count) + '\tWARN: ' + str(warn_count) + '\tINFO: ' + str(info_count) +
         '\tIGNORE: ' + str(ignore_count) + '\tPASS: ' + str(pass_count))
 
     # Stop ZAP
