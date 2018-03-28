@@ -62,6 +62,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import NoSuchElementException
 from pyvirtualdisplay import Display
 
 timeout = 120
@@ -475,25 +476,37 @@ def main(argv):
                 sumbitField = driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
                 sumbitField.click()
         else:
+            def find_element(name, xpath):
+                element = None
+                try:
+                    element = driver.find_element_by_id(name)
+                except NoSuchElementException:
+                    try:
+                        element = driver.find_element_by_name(name)
+                    except NoSuchElementException:
+                        if xpath is None:
+                            raise
+
+                        element = driver.find_element_by_xpath(xpath)
+
+                return element
+
+
             if auth_username_field_name:
-                driver.find_element_by_name(auth_username_field_name).clear()
-                driver.find_element_by_name(auth_username_field_name).send_keys(auth_username)
+                userField = find_element(auth_username_field_name, None)
+                userField.clear()
+                userField.send_keys(auth_username)
 
             if auth_first_submit_field_name:
-                try:
-                    driver.find_element_by_name(auth_first_submit_field_name).click()
-                except:
-                    driver.find_element_by_xpath("//input[@type='submit']").click()
+                find_element(auth_first_submit_field_name, "//input[@type='submit']").click()
 
             if auth_password_field_name:
-                driver.find_element_by_name(auth_password_field_name).clear()
-                driver.find_element_by_name(auth_password_field_name).send_keys(auth_password)
+                passwordField = find_element(auth_password_field_name, None)
+                passwordField.clear()
+                passwordField.send_keys(auth_password)
 
             if auth_submit_field_name:
-                try:
-                    driver.find_element_by_name(auth_submit_field_name).click()
-                except:
-                    driver.find_element_by_xpath("//input[@type='submit']").click()
+                find_element(auth_submit_field_name, "//input[@type='submit']").click()
 
         # Wait for all requests to finish - not needed?
         time.sleep(30)
