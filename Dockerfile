@@ -20,13 +20,10 @@ RUN cd /opt && \
 	bunzip2 firefox-46.0.tar.bz2 && \
 	tar xvf firefox-46.0.tar && \
 	ln -s /opt/firefox/firefox /usr/bin/firefox
-	
+
 RUN pip install selenium==2.53.6
 RUN pip install pyvirtualdisplay
 
-COPY zap-baseline-custom.py /zap/
-
-RUN chown zap:zap /zap/zap-baseline-custom.py && \ 
-	chmod +x /zap/zap-baseline-custom.py
+COPY auth_hook.py /zap/
 
 USER root
