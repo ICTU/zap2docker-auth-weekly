@@ -25,5 +25,6 @@ RUN pip install selenium==2.53.6
 RUN pip install pyvirtualdisplay
 
 COPY auth_hook.py /zap/
+COPY zap_webdriver.py /zap/
 
 USER root
