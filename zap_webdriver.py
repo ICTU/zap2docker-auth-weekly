@@ -87,6 +87,7 @@ class ZapWebdriver:
         self.driver = webdriver.Firefox(profile)
         self.driver.implicitly_wait(30)
 
+
     def login(self, zap, target):
         logging.getLogger().setLevel(logging.DEBUG)
 
@@ -94,24 +95,10 @@ class ZapWebdriver:
 
         self.driver.get(self.auth_loginUrl)
 
-        if self.auth_username_field_name:
-            userField = find_element(self.auth_username_field_name, None)
-            userField.clear()
-            userField.send_keys(self.auth_username)
-
-        if self.auth_first_submit_field_name:
-            find_element(self.auth_first_submit_field_name, "//input[@type='submit']").click()
-
-        if self.auth_password_field_name:
-            passwordField = find_element(self.auth_password_field_name, None)
-            passwordField.clear()
-            passwordField.send_keys(self.auth_password)
-
-        if self.auth_submit_field_name:
-            find_element(self.auth_submit_field_name, "//input[@type='submit']").click()
-
-        # Wait for all requests to finish - not needed?
-        # time.sleep(30)
+        if self.auth_auto:
+            self.auto_login(zap, target)
+        else:
+            self.normal_login(zap, target)
 
         logging.debug('Create an authenticated session')
 
@@ -127,6 +114,53 @@ class ZapWebdriver:
         zap.httpsessions.set_active_session(target, 'auth-session')
 
         logging.debug('Active session: ' + zap.httpsessions.active_session(target))
+
+    def auto_login(self, zap, target):
+        logging.debug ('Automatically finding login fields')
+
+        if auth_username:
+            # find username field
+            userField = driver.find_element_by_xpath("(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
+            userField.clear()
+            userField.send_keys(auth_username)
+
+        # find password field
+        try:
+            if auth_password:
+                passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
+                passField.clear()
+                passField.send_keys(auth_password)
+
+            sumbitField = driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
+            sumbitField.click()
+        except:
+            logging.debug ('Did not find password field - auth in 2 steps')
+            # login in two steps
+            sumbitField = driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
+            sumbitField.click()
+            if auth_password:
+                passField = driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
+                passField.clear()
+                passField.send_keys(auth_password)
+            sumbitField = driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
+            sumbitField.click()
+
+    def normal_login(self, zap, target):
+        if self.auth_username_field_name:
+            userField = find_element(self.auth_username_field_name, None)
+            userField.clear()
+            userField.send_keys(self.auth_username)
+
+        if self.auth_first_submit_field_name:
+            find_element(self.auth_first_submit_field_name, "//input[@type='submit']").click()
+
+        if self.auth_password_field_name:
+            passwordField = find_element(self.auth_password_field_name, None)
+            passwordField.clear()
+            passwordField.send_keys(self.auth_password)
+
+        if self.auth_submit_field_name:
+            find_element(self.auth_submit_field_name, "//input[@type='submit']").click()
 
     def find_element(self, name, xpath):
         element = None
