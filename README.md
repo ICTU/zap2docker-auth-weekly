@@ -19,7 +19,7 @@ docker run -v $(pwd):/zap/wrk/:rw \
 ```
 
 # Limitations
-Since this authentication solution uses webdriver solution a browser and webdriver itself are needed this custom image with is needed to meet these requirements.
+Since this authentication solution uses webdriver and a browser a custom image is needed to meet these requirements.
 
 The auth_hook.py script does not have a nice way to get the random ZAP port running in the container, port 8081 is therefor hardcoded.
 
