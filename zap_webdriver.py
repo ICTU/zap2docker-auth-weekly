@@ -147,20 +147,20 @@ class ZapWebdriver:
 
     def normal_login(self, zap, target):
         if self.auth_username_field_name:
-            userField = find_element(self.auth_username_field_name, None)
+            userField = self.find_element(self.auth_username_field_name, None)
             userField.clear()
             userField.send_keys(self.auth_username)
 
         if self.auth_first_submit_field_name:
-            find_element(self.auth_first_submit_field_name, "//input[@type='submit']").click()
+            self.find_element(self.auth_first_submit_field_name, "//input[@type='submit']").click()
 
         if self.auth_password_field_name:
-            passwordField = find_element(self.auth_password_field_name, None)
+            passwordField = self.find_element(self.auth_password_field_name, None)
             passwordField.clear()
             passwordField.send_keys(self.auth_password)
 
         if self.auth_submit_field_name:
-            find_element(self.auth_submit_field_name, "//input[@type='submit']").click()
+            self.find_element(self.auth_submit_field_name, "//input[@type='submit']").click()
 
     def find_element(self, name, xpath):
         element = None
