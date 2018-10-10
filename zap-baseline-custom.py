@@ -505,8 +505,7 @@ def main(argv):
                 passwordField.clear()
                 passwordField.send_keys(auth_password)
 
-            if auth_submit_field_name:
-                find_element(auth_submit_field_name, "//input[@type='submit']").click()
+            find_element(auth_submit_field_name, "//input[@type='submit']").click()
 
         # Wait for all requests to finish - not needed?
         time.sleep(30)
