@@ -159,8 +159,7 @@ class ZapWebdriver:
             passwordField.clear()
             passwordField.send_keys(self.auth_password)
 
-        if self.auth_submit_field_name:
-            self.find_element(self.auth_submit_field_name, "//input[@type='submit']").click()
+        self.find_element(self.auth_submit_field_name, "//input[@type='submit']").click()
 
     def find_element(self, name, xpath):
         element = None
