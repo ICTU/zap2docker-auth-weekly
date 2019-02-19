@@ -1,7 +1,7 @@
 # Customized Owasp ZAP Dockerfile with support for authentication
 
 FROM owasp/zap2docker-weekly
-MAINTAINER Roderik Eikeboom <roderik.eikeboom@ictu.nl>
+LABEL maintainer="Dick Snel <dick.snel@ictu.nl>"
 
 USER root
 
@@ -23,6 +23,9 @@ RUN cd /opt && \
 
 RUN pip install selenium==2.53.6
 RUN pip install pyvirtualdisplay
+
+# Warn for the usage of the deprecated version which does not use the hook mechanism
+COPY zap-baseline-custom.py /zap/
 
 COPY auth_hook.py /zap/
 COPY zap_webdriver.py /zap/

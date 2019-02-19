@@ -1,0 +1,1 @@
+print("ERROR: Your version of ICTU/zap-baseline is deprecated and no longer supported. Please upgrade: https://github.com/ICTU/zap-baseline/")
