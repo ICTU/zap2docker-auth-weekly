@@ -2,6 +2,11 @@ import zap_webdriver
 
 webdriver = zap_webdriver.ZapWebdriver()
 
+# Triggered when running a script directly (ex. python zap-baseline.py ...)
+def start_docker_zap(docker_image, port, extra_zap_params, mount_dir):
+    webdriver.load_from_extra_zap_params(port, extra_zap_params)
+
+# Triggered when running from the Docker image
 def start_zap(port, extra_zap_params):
     webdriver.load_from_extra_zap_params(port, extra_zap_params)
 

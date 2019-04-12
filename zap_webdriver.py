@@ -29,8 +29,8 @@ class ZapWebdriver:
         self.extra_zap_params = ''
         
     def load_from_extra_zap_params(self, port, extra_zap_params):
-        logging.debug ('load_from_extra_zap_params port ' + str(port))
-        logging.debug ('load_from_extra_zap_params params ' + str(extra_zap_params))
+        logging.info ('load_from_extra_zap_params port ' + str(port))
+        logging.info ('load_from_extra_zap_params params ' + str(extra_zap_params))
 
         self.extra_zap_params = extra_zap_params
         self.zap_port = port
@@ -43,60 +43,51 @@ class ZapWebdriver:
         self.auth_password_field_name = self._get_zap_param('auth.password_field')
         self.auth_submit_field_name = self._get_zap_param('auth.submit_field')
         self.auth_first_submit_field_name = self._get_zap_param('auth.first_submit_field')
-        self.auth_excludeUrls = self._get_zap_param('auth.exclude').split(',')
+        self.auth_excludeUrls = list(filter(None, self._get_zap_param('auth.exclude').split(',')))
 
     def setup_zap_context(self, zap, target):
-        logging.debug('Setup a new context')
-
+        logging.info('Setup a new context')
+        
         # create a new context
-        contextId = zap.context.new_context('auth')
-
+        contextName = 'auth'
+        zap.context.new_context(contextName)
+        
         # include everything below the target
-        zap.context.include_in_context('auth', "\\Q" + target + "\\E.*")
-        logging.debug('Context - included ' + target + ".*")
+        zap.context.include_in_context(contextName, "\\Q" + target + "\\E.*")
+        logging.info('Context - included ' + target + ".*")
 
         # exclude all urls that end the authenticated session
         if len(self.auth_excludeUrls) == 0:
-            self.auth_excludeUrls.append('(logout|uitloggen|afmelden)')
+            self.auth_excludeUrls.append('(logout.php|uitloggen|afmelden)')
 
         for exclude in self.auth_excludeUrls:
-            zap.context.exclude_from_context('auth', exclude)
-            logging.debug ('Context - excluded ' + exclude)
+            zap.context.exclude_from_context(contextName, exclude)
+            logging.info('Context - excluded ' + exclude)
 
         # set the context in scope
-        zap.context.set_context_in_scope('auth', True)
+        zap.context.set_context_in_scope(contextName, True)
         zap.context.set_context_in_scope('Default Context', False)
 
     def setup_webdriver(self, zap, target):
-        logging.debug ('Setup proxy for webdriver')
-
-        PROXY = self.zap_ip + ':' + str(self.zap_port)
-        logging.debug ('PROXY: ' + PROXY)
-        webdriver.DesiredCapabilities.FIREFOX['proxy'] = {
-            "httpProxy":PROXY,
-            "ftpProxy":PROXY,
-            "sslProxy":PROXY,
-            "noProxy":None,
-            "proxyType":"MANUAL",
-            "class":"org.openqa.selenium.Proxy",
-            "autodetect":False
-        }
+        logging.info ('Setup proxy for webdriver')
 
         profile = webdriver.FirefoxProfile()
         profile.accept_untrusted_certs = True
-        profile.set_preference("browser.startup.homepage_override.mstone", "ignore")
-        profile.set_preference("startup.homepage_welcome_url.additional", "about:blank")
+        profile.set_preference('network.proxy.http', self.zap_ip)
+        profile.set_preference('network.proxy.http_port', self.zap_port)
+        profile.set_preference('network.proxy.ssl', self.zap_ip)
+        profile.set_preference('network.proxy.ssl_port', self.zap_port)
+        profile.set_preference('browser.startup.homepage_override.mstone', 'ignore')
+        profile.set_preference('startup.homepage_welcome_url.additional', 'about:blank')
 
         self.display = Display(visible=self.auth_display, size=(1024, 768))
         self.display.start()
 
-        logging.debug ('Start webdriver')
+        logging.info ('Start webdriver')
         self.driver = webdriver.Firefox(profile)
-        self.driver.implicitly_wait(30)
-
 
     def login(self, zap, target):
-        logging.debug('Authenticate using webdriver ' + self.auth_loginUrl)
+        logging.info('Authenticate using webdriver ' + self.auth_loginUrl)
 
         self.driver.get(self.auth_loginUrl)
 
@@ -105,23 +96,24 @@ class ZapWebdriver:
         else:
             self.normal_login(zap, target)
 
-        logging.debug('Create an authenticated session')
+        logging.info('Create an authenticated session')
 
-        # Create a new session using the aquired cookies from the authentication
+        # Create an empty session
+        zap.httpsessions.add_session_token(target, 'session_token')
         zap.httpsessions.create_empty_session(target, 'auth-session')
 
         # add all found cookies as session cookies
         for cookie in self.driver.get_cookies():
             zap.httpsessions.set_session_token_value(target, 'auth-session', cookie['name'], cookie['value'])
-            logging.debug('Cookie found: ' + cookie['name'] + ' - Value: ' + cookie['value'])
+            logging.info('Cookie added: ' + cookie['name'] + ' - Value: ' + cookie['value'])
 
         # Mark the session as active
         zap.httpsessions.set_active_session(target, 'auth-session')
 
-        logging.debug('Active session: ' + zap.httpsessions.active_session(target))
+        logging.info('Active session: ' + zap.httpsessions.active_session(target))
 
     def auto_login(self, zap, target):
-        logging.debug ('Automatically finding login fields')
+        logging.info('Automatically finding login fields')
 
         if self.auth_username:
             # find username field
@@ -139,7 +131,7 @@ class ZapWebdriver:
             sumbitField = self.driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
             sumbitField.click()
         except:
-            logging.debug ('Did not find password field - auth in 2 steps')
+            logging.info('Did not find password field - auth in 2 steps')
             # login in two steps
             sumbitField = self.driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
             sumbitField.click()
