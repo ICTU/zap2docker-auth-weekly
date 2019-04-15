@@ -33,4 +33,6 @@ RUN chown zap:zap /zap/zap-baseline-custom.py  && \
 		chown zap:zap /zap/auth_hook.py && \
 		chown zap:zap /zap/zap_webdriver.py
 
+WORKDIR /zap
+
 USER zap
