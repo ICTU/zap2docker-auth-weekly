@@ -68,7 +68,7 @@ class ZapWebdriver:
 
         # exclude all urls that end the authenticated session
         if len(self.auth_excludeUrls) == 0:
-            self.auth_excludeUrls.append('(logout.php|uitloggen|afmelden)')
+            self.auth_excludeUrls.append('(logout|uitloggen|afmelden)')
 
         for exclude in self.auth_excludeUrls:
             zap.context.exclude_from_context(contextName, exclude)
