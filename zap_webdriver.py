@@ -29,9 +29,6 @@ class ZapWebdriver:
         self.extra_zap_params = ''
         
     def load_from_extra_zap_params(self, port, extra_zap_params):
-        logging.info ('load_from_extra_zap_params port ' + str(port))
-        logging.info ('load_from_extra_zap_params params ' + str(extra_zap_params))
-
         self.extra_zap_params = extra_zap_params
         self.zap_port = port
         self.auth_auto = self._get_zap_param_boolean('auth.auto')
@@ -44,6 +41,19 @@ class ZapWebdriver:
         self.auth_submit_field_name = self._get_zap_param('auth.submit_field')
         self.auth_first_submit_field_name = self._get_zap_param('auth.first_submit_field')
         self.auth_excludeUrls = list(filter(None, self._get_zap_param('auth.exclude').split(',')))
+        
+        logging.info ('load_from_extra_zap_params port ' + str(self.zap_port))
+        logging.info ('load_from_extra_zap_params params ' + ''.join(self.extra_zap_params))
+        logging.info ('load_from_extra_zap_params auth_auto ' + str(self.auth_auto))
+        logging.info ('load_from_extra_zap_params auth_display ' + str(self.auth_display))
+        logging.info ('load_from_extra_zap_params auth_loginUrl ' + self.auth_loginUrl)
+        logging.info ('load_from_extra_zap_params auth_username ' + self.auth_username)
+        logging.info ('load_from_extra_zap_params auth_password ' + self.auth_password)
+        logging.info ('load_from_extra_zap_params auth_username_field_name ' + self.auth_username_field_name)
+        logging.info ('load_from_extra_zap_params auth_password_field_name ' + self.auth_password_field_name)
+        logging.info ('load_from_extra_zap_params auth_submit_field_name ' + self.auth_submit_field_name)
+        logging.info ('load_from_extra_zap_params auth_first_submit_field_name ' + self.auth_first_submit_field_name)
+        logging.info ('load_from_extra_zap_params auth_excludeUrls ' + ''.join(self.auth_excludeUrls))
 
     def setup_zap_context(self, zap, target):
         logging.info('Setup a new context')
