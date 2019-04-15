@@ -1,7 +1,7 @@
 # Customized Owasp ZAP Dockerfile with support for authentication
 
 FROM owasp/zap2docker-weekly
-MAINTAINER Roderik Eikeboom <roderik.eikeboom@ictu.nl>
+LABEL maintainer="Dick Snel <dick.snel@ictu.nl>"
 
 USER root
 
@@ -9,24 +9,25 @@ USER root
 RUN apt-get -y remove firefox
 
 RUN cd /opt && \
-	wget https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz && \
-	tar -xvzf geckodriver-v0.11.1-linux64.tar.gz && \
+	wget https://github.com/mozilla/geckodriver/releases/download/v0.20.1/geckodriver-v0.20.1-linux64.tar.gz && \
+	tar -xvzf geckodriver-v0.20.1-linux64.tar.gz && \
 	chmod +x geckodriver && \
 	ln -s /opt/geckodriver /usr/bin/geckodriver && \
 	export PATH=$PATH:/usr/bin/geckodriver
 
 RUN cd /opt && \
-	wget http://ftp.mozilla.org/pub/firefox/releases/46.0/linux-x86_64/en-US/firefox-46.0.tar.bz2 && \
-	bunzip2 firefox-46.0.tar.bz2 && \
-	tar xvf firefox-46.0.tar && \
+	wget http://ftp.mozilla.org/pub/firefox/releases/55.0/linux-x86_64/en-US/firefox-55.0.tar.bz2 && \
+	bunzip2 firefox-55.0.tar.bz2 && \
+	tar xvf firefox-55.0.tar && \
 	ln -s /opt/firefox/firefox /usr/bin/firefox
-	
-RUN pip install selenium==2.53.6
+
+RUN pip install selenium
 RUN pip install pyvirtualdisplay
 
+# Warn for the usage of the deprecated version which does not use the hook mechanism
 COPY zap-baseline-custom.py /zap/
 
-RUN chown zap:zap /zap/zap-baseline-custom.py && \ 
-	chmod +x /zap/zap-baseline-custom.py
+COPY auth_hook.py /zap/
+COPY zap_webdriver.py /zap/
 
 USER root
