@@ -46,7 +46,3 @@ auth.exclude              Comma separated list of excluded URL's. Default: (logo
 
 # Limitations
 Since this authentication solution uses webdriver and a browser a custom image is needed to meet these requirements.
-
-# Todo
-* Backwards compatibility commandline parameters before merging to master
-* Update webdriver and firefox to latest version in Dockerfile
