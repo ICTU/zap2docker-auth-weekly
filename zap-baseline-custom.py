@@ -33,7 +33,6 @@ def main(argv):
     for opt, arg in opts:
         if opt == '-t':
             target = arg
-            logging.debug ('Target: ' + target)
         elif opt == '-m':
             mins = arg
         elif opt == '-r':
@@ -65,7 +64,7 @@ def main(argv):
                    .format(auth_loginUrl, auth_username, auth_password, auth_auto, auth_username_field_name, auth_password_field_name, auth_submit_field_name, auth_first_submit_field_name, auth_excludeUrls)
     command = './{} -t {} -r {} -m {} -z {} -d --hook=/zap/auth_hook.py'.format(scanmode, target, report_html, mins, optionalargs)
 
-    logging.warning('Starting: ' + command)
+    logging.info('Starting: ' + command)
     subprocess.call(command, shell=True)
 
 if __name__ == '__main__':

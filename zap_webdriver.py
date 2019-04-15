@@ -43,7 +43,6 @@ class ZapWebdriver:
         self.auth_excludeUrls = list(filter(None, self._get_zap_param('auth.exclude').split(',')))
         
         logging.info ('load_from_extra_zap_params port ' + str(self.zap_port))
-        logging.info ('load_from_extra_zap_params params ' + ''.join(self.extra_zap_params))
         logging.info ('load_from_extra_zap_params auth_auto ' + str(self.auth_auto))
         logging.info ('load_from_extra_zap_params auth_display ' + str(self.auth_display))
         logging.info ('load_from_extra_zap_params auth_loginUrl ' + self.auth_loginUrl)
@@ -56,7 +55,7 @@ class ZapWebdriver:
         logging.info ('load_from_extra_zap_params auth_excludeUrls ' + ''.join(self.auth_excludeUrls))
 
     def setup_zap_context(self, zap, target):
-        logging.info('Setup a new context')
+        logging.info('Setup a new context for target' + target)
         
         # create a new context
         contextName = 'auth'
