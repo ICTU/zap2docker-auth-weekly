@@ -26,8 +26,11 @@ RUN pip install pyvirtualdisplay
 
 # Support for using the deprecated version
 COPY zap-baseline-custom.py /zap/
-
 COPY auth_hook.py /zap/
 COPY zap_webdriver.py /zap/
+
+RUN chown zap:zap /zap/zap-baseline-custom.py  && \
+		chown zap:zap /zap/auth_hook.py && \
+		chown zap:zap /zap/zap_webdriver.py
 
 USER zap
