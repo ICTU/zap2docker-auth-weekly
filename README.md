@@ -5,7 +5,7 @@ With the new [hook mechanism](https://github.com/zaproxy/zaproxy/issues/4925) in
 
 1. Running a baseline scan (passive) and automatic authentication
 ```
-docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly:Rebase-From-Fork zap-baseline.py \
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py \
   -t https://demo.website.net \
   -r testreport.html \
    --hook=/zap/auth_hook.py \ 
@@ -17,7 +17,7 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly:Rebase-From-For
 
 2. Running a full scan (active) with manual authentication
 ```
-docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly:Rebase-From-Fork zap-full-scan.py \
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weeklyk zap-full-scan.py \
   -t https://demo.website.net \
   -r testreport.html \
    --hook=/zap/auth_hook.py \ 
