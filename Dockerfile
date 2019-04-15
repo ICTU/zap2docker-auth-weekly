@@ -24,7 +24,7 @@ RUN cd /opt && \
 RUN pip install selenium
 RUN pip install pyvirtualdisplay
 
-# Warn for the usage of the deprecated version which does not use the hook mechanism
+# Support for using the deprecated version
 COPY zap-baseline-custom.py /zap/
 
 COPY auth_hook.py /zap/
