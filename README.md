@@ -48,4 +48,4 @@ auth.exclude              Comma separated list of excluded URL's. Default: (logo
 
 # Limitations
 1. Since this authentication solution uses webdriver and a browser a custom image is needed to meet these requirements.
-2. Session cookies that are automatically set by this script will not add flags like HttpOnly, Secure and SameSite. ZAP doest not support setting these cookies using the API. This will result in false-positives in the report regarding these flags.
+2. Cookies that are automatically set by this script will not add flags like HttpOnly, Secure and SameSite. ZAP doest not support setting these cookies using the API. This will result in false-positives in the report regarding these flags.
