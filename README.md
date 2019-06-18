@@ -27,10 +27,13 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.p
       auth.username_field="j_username" \
       auth.password_field="j_password" \
       auth.submit_field="submit" \
-      auth.exclude="\Qhttp://www.website.com/j_spring_security_logout\E,\Qhttp://www.website.com/j_spring_security_check\E.*""
+      auth.exclude=".*logout.*,\Qhttp://url.com/logout\E.*"
 ```
 
-Note: exclude URL's are comma separated regular expressions.
+Note: exclude URL's are comma separated regular expressions. Examples:
+```
+.*logout.*,\Qhttp://url.com/logout\E.*
+```
 
 # Parameters
 
