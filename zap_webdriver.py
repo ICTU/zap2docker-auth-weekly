@@ -72,6 +72,7 @@ class ZapWebdriver:
             self.auth_excludeUrls.append('afmelden')
 
         for exclude in self.auth_excludeUrls:
+            zap.spider.exclude_from_scan(exclude)
             zap.context.exclude_from_context(contextName, exclude)
             logging.info('Context - excluded ' + exclude)
 
