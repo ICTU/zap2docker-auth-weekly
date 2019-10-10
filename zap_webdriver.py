@@ -178,10 +178,13 @@ class ZapWebdriver:
             try:
                 element = self.driver.find_element_by_name(name)
             except NoSuchElementException:
-                if xpath is None:
-                    raise
+                try:
+                    element = self.driver.find_element_by_xpath(name)
+                except NoSuchElementException:
+                    if xpath is None:
+                        raise
 
-                element = self.driver.find_element_by_xpath(xpath)
+                    element = self.driver.find_element_by_xpath(xpath)
 
         return element
 
