@@ -21,8 +21,8 @@ RUN cd /opt && \
 	tar xvf firefox.tar && \
 	ln -s /opt/firefox/firefox /usr/bin/firefox
 
-RUN pip install selenium
-RUN pip install pyvirtualdisplay
+RUN pip2 install selenium
+RUN pip2 install pyvirtualdisplay
 
 # Support for using the deprecated version
 COPY zap-baseline-custom.py /zap/
