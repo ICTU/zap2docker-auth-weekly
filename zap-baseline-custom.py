@@ -18,6 +18,7 @@ def main(argv):
     scanmode = 'zap-baseline.py'
     mins = '10'
     report_html = ''
+    report_xml = ''
     target = ''
 
     auth_auto = '0'
@@ -37,6 +38,8 @@ def main(argv):
             mins = arg
         elif opt == '-r':
             report_html = arg
+        elif opt == '-x':
+            report_xml = '-x ' + arg
         elif opt == '--auth_auto':
             auth_auto = '1'
         elif opt == '--auth_display':
@@ -62,7 +65,7 @@ def main(argv):
 
     optionalargs = '"auth.loginurl="{}" auth.username="{}" auth.password="{}" auth.auto={} auth.username_field="{}" auth.password_field="{}" auth.submit_field="{}" auth.first_submit_field="{}" auth.exclude="{}""' \
                    .format(auth_loginUrl, auth_username, auth_password, auth_auto, auth_username_field_name, auth_password_field_name, auth_submit_field_name, auth_first_submit_field_name, auth_excludeUrls)
-    command = './{} -t {} -r {} -m {} -z {} -d --hook=/zap/auth_hook.py'.format(scanmode, target, report_html, mins, optionalargs)
+    command = './{} -t {} -r {} {} -m {} -z {} -d --hook=/zap/auth_hook.py'.format(scanmode, target, report_html, report_xml, mins, optionalargs)
 
     logging.info('Starting: ' + command)
     subprocess.call(command, shell=True)
