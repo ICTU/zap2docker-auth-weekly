@@ -29,6 +29,8 @@ COPY zap-baseline-custom.py /zap/
 COPY auth_hook.py /zap/
 COPY zap_webdriver.py /zap/
 
+RUN mkdir /zap/wrk
+
 RUN chown zap:zap /zap/zap-baseline-custom.py  && \
 		chown zap:zap /zap/wrk/ -R && \
 		chown zap:zap /zap/auth_hook.py && \
