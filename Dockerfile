@@ -32,11 +32,10 @@ COPY zap_webdriver.py /zap/
 RUN mkdir /zap/wrk
 
 RUN chown zap:zap /zap/zap-baseline-custom.py  && \
-		chown zap:zap /zap/wrk/ -R && \
+		chown zap:zap /zap/wrk/ && \
 		chown zap:zap /zap/auth_hook.py && \
 		chown zap:zap /zap/zap_webdriver.py && \
-		chmod +x /zap/zap-baseline-custom.py && \
-		chmod +w /zap/wrk/
+		chmod +x /zap/zap-baseline-custom.py
 
 WORKDIR /zap
 
