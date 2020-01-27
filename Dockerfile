@@ -30,6 +30,7 @@ COPY auth_hook.py /zap/
 COPY zap_webdriver.py /zap/
 
 RUN chown zap:zap /zap/zap-baseline-custom.py  && \
+		chown zap:zap /zap/wrk/ -R && \
 		chown zap:zap /zap/auth_hook.py && \
 		chown zap:zap /zap/zap_webdriver.py && \
 		chmod +x /zap/zap-baseline-custom.py
