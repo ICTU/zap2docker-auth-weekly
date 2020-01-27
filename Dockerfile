@@ -5,6 +5,8 @@ LABEL maintainer="Dick Snel <dick.snel@ictu.nl>"
 
 USER root
 
+RUN mkdir /zap/wrk && chown zap:zap /zap/wrk 
+
 # Install Selenium compatible firefox
 RUN apt-get -y remove firefox
 
