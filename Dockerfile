@@ -33,7 +33,7 @@ RUN mkdir /zap/wrk
 RUN chown zap:zap /zap/zap-baseline-custom.py  && \
 		chown zap:zap /zap/auth_hook.py && \
 		chown zap:zap /zap/zap_webdriver.py && \
-		chown -R zap:zap /zap/wrk
+		chown -R zap:zap /zap/wrk && \
 		chmod +x /zap/zap-baseline-custom.py
 
 WORKDIR /zap
