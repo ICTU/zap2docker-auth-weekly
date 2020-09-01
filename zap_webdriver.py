@@ -55,7 +55,7 @@ class ZapWebdriver:
         logging.info ('load_from_extra_zap_params auth_excludeUrls ' + ''.join(self.auth_excludeUrls))
 
     def setup_zap_context(self, zap, target):
-        logging.info('Setup a new context for target' + target)
+        logging.info('Setup a new context for target ' + target)
         
         # create a new context
         contextName = 'auth'
