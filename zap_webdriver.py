@@ -3,85 +3,67 @@ import string
 import os
 import time
 import urllib
+import time
+import re
+import traceback
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
 from pyvirtualdisplay import Display
+import localstorage
 
 class ZapWebdriver:
-    def __init__(self):
-        self.auth_auto = False
-        self.auth_display = False
-        self.auth_loginUrl = ''
-        self.auth_username = ''
-        self.auth_password = ''
-        self.auth_username_field_name = ''
-        self.auth_password_field_name = ''
-        self.auth_submit_field_name = ''
-        self.auth_first_submit_field_name = ''
-        self.auth_excludeUrls = []
-        self.zap_ip = 'localhost'
-        self.zap_port = 8081
-        self.driver = None
-        self.display = None
-        self.extra_zap_params = ''
-        
     def load_from_extra_zap_params(self, port, extra_zap_params):
+        self.zap_ip = 'localhost'
         self.extra_zap_params = extra_zap_params
         self.zap_port = port
-        self.auth_auto = self._get_zap_param_boolean('auth.auto')
-        self.auth_display = self._get_zap_param_boolean('auth.display')
-        self.auth_loginUrl = self._get_zap_param('auth.loginurl')
-        self.auth_username = self._get_zap_param('auth.username')
-        self.auth_password = self._get_zap_param('auth.password')
-        self.auth_username_field_name = self._get_zap_param('auth.username_field')
-        self.auth_password_field_name = self._get_zap_param('auth.password_field')
-        self.auth_submit_field_name = self._get_zap_param('auth.submit_field')
-        self.auth_first_submit_field_name = self._get_zap_param('auth.first_submit_field')
-        self.auth_excludeUrls = list(filter(None, self._get_zap_param('auth.exclude').split(',')))
+        self.auth_auto = self._get_zap_param_boolean('auth.auto') or True
+        self.auth_display = self._get_zap_param_boolean('auth.display') or False
+        self.auth_loginUrl = self._get_zap_param('auth.loginurl') or ''
+        self.auth_username = self._get_zap_param('auth.username') or ''
+        self.auth_password = self._get_zap_param('auth.password') or ''
+        self.auth_username_field_name = self._get_zap_param('auth.username_field') or 'username'
+        self.auth_password_field_name = self._get_zap_param('auth.password_field') or 'password'
+        self.auth_submit_field_name = self._get_zap_param('auth.submit_field') or 'login'
+        self.auth_first_submit_field_name = self._get_zap_param('auth.first_submit_field') or 'next'
+        self.auth_excludeUrls = self._get_zap_param_list('auth.exclude') or list()
+        self.auth_includeUrls = self._get_zap_param_list('auth.include') or list()
         
-        logging.info ('load_from_extra_zap_params port ' + str(self.zap_port))
-        logging.info ('load_from_extra_zap_params auth_auto ' + str(self.auth_auto))
-        logging.info ('load_from_extra_zap_params auth_display ' + str(self.auth_display))
-        logging.info ('load_from_extra_zap_params auth_loginUrl ' + self.auth_loginUrl)
-        logging.info ('load_from_extra_zap_params auth_username ' + self.auth_username)
-        logging.info ('load_from_extra_zap_params auth_password ' + self.auth_password)
-        logging.info ('load_from_extra_zap_params auth_username_field_name ' + self.auth_username_field_name)
-        logging.info ('load_from_extra_zap_params auth_password_field_name ' + self.auth_password_field_name)
-        logging.info ('load_from_extra_zap_params auth_submit_field_name ' + self.auth_submit_field_name)
-        logging.info ('load_from_extra_zap_params auth_first_submit_field_name ' + self.auth_first_submit_field_name)
-        logging.info ('load_from_extra_zap_params auth_excludeUrls ' + ''.join(self.auth_excludeUrls))
-
     def setup_zap_context(self, zap, target):
-        logging.info('Setup a new context for target ' + target)
+        logging.info('Setup a new context for target %s', target)
         
         # create a new context
         contextName = 'auth'
         zap.context.new_context(contextName)
         
         # include everything below the target
-        zap.context.include_in_context(contextName, "\\Q" + target + "\\E.*")
-        logging.info('Context - included ' + target + ".*")
+        self.auth_includeUrls.append(target)
+        
+        # include additional url's
+        for include in self.auth_includeUrls:
+            zap.context.include_in_context(contextName, "\\Q" + include + "\\E.*")
+            logging.info('Context - included %s.*', include)
 
         # exclude all urls that end the authenticated session
         if len(self.auth_excludeUrls) == 0:
             self.auth_excludeUrls.append('.*logout.*')
             self.auth_excludeUrls.append('.*uitloggen.*')
             self.auth_excludeUrls.append('.*afmelden.*')
+            self.auth_excludeUrls.append('.*signout.*')
 
         for exclude in self.auth_excludeUrls:
             zap.spider.exclude_from_scan(exclude)
             zap.context.exclude_from_context(contextName, exclude)
-            logging.info('Context - excluded ' + exclude)
+            logging.info('Context - excluded %s', exclude)
 
         # set the context in scope
         zap.context.set_context_in_scope(contextName, True)
         zap.context.set_context_in_scope('Default Context', False)
 
-    def setup_webdriver(self, zap, target):
-        logging.info ('Setup proxy for webdriver')
+    def setup_webdriver(self):
+        logging.info('Setup proxy for webdriver')
 
         profile = webdriver.FirefoxProfile()
         profile.accept_untrusted_certs = True
@@ -95,111 +77,145 @@ class ZapWebdriver:
         self.display = Display(visible=self.auth_display, size=(1024, 768))
         self.display.start()
 
-        logging.info ('Start webdriver')
+        logging.info('Start webdriver')
         self.driver = webdriver.Firefox(profile)
 
     def login(self, zap, target):
-        logging.info('Authenticate using webdriver ' + self.auth_loginUrl)
+        if not self.auth_loginUrl:
+            logging.info('No login URL provided - skipping authentication')
+            return
 
-        self.driver.get(self.auth_loginUrl)
-
-        if self.auth_auto:
-            self.auto_login(zap, target)
-        else:
-            self.normal_login(zap, target)
-
-        logging.info('Create an authenticated session')
-
-        # Create an empty session
-        zap.httpsessions.add_session_token(target, 'session_token')
-        zap.httpsessions.create_empty_session(target, 'auth-session')
-
-        # add all found cookies as session cookies
-        for cookie in self.driver.get_cookies():
-            zap.httpsessions.set_session_token_value(target, 'auth-session', cookie['name'], cookie['value'])
-            logging.info('Cookie added: ' + cookie['name'] + ' - Value: ' + cookie['value'])
-
-        # Mark the session as active
-        zap.httpsessions.set_active_session(target, 'auth-session')
-
-        logging.info('Active session: ' + zap.httpsessions.active_session(target))
-
-    def auto_login(self, zap, target):
-        logging.info('Automatically finding login fields')
-
-        if self.auth_username:
-            # find username field
-            userField = self.driver.find_element_by_xpath("(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
-            userField.clear()
-            userField.send_keys(self.auth_username)
-
-        # find password field
         try:
-            if self.auth_password:
-                passField = self.driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
-                passField.clear()
-                passField.send_keys(self.auth_password)
+            # setup the zap context
+            self.setup_zap_context(zap, target)
 
-            sumbitField = self.driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
-            sumbitField.click()
+            # setup the webdriver
+            self.setup_webdriver()
+
+            # login to the application
+            self.auto_login(self.auth_loginUrl)
+            
+            logging.info('Finding authentication cookies')
+
+            # add all found cookies as session cookies
+            for cookie in self.driver.get_cookies():
+                zap.replacer.add_rule(description = 'Cookie_' + cookie['name'], enabled = True, matchtype = 'REQ_HEADER', matchregex = False, matchstring = 'Cookie', replacement = cookie['name'] + '=' + cookie['value'])
+                logging.info('Cookie added: %s - Value: %s', cookie['name'], cookie['value'])
+
+            logging.info('Finding authentication headers')
+
+            # try to find JWT tokens in LocalStorage and add them as Authorization header
+            storage = localstorage.LocalStorage(self.driver)
+            for key in storage.items():
+                logging.info("Found storage item: %s: %s", key, storage.get(key))
+                match = re.search('(eyJ[^"]*)', storage.get(key))
+                if match:
+                    auth_header = "Bearer " + match.group()
+                    zap.replacer.add_rule(description = 'AuthHeader', enabled = True, matchtype = 'REQ_HEADER', matchregex = False, matchstring = 'Authorization', replacement = auth_header)
+                    logging.info("Authorization header added: %s", auth_header)
+
         except:
-            logging.info('Did not find password field - auth in 2 steps')
-            # login in two steps
-            sumbitField = self.driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
-            sumbitField.click()
-            if self.auth_password:
-                passField = self.driver.find_element_by_xpath("//input[@type='password' or contains(@name,'ass')]")
-                passField.clear()
-                passField.send_keys(self.auth_password)
-            sumbitField = self.driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='login' and (@type='submit' or @type='button')) or @type='submit' or @type='button']")
-            sumbitField.click()
+            logging.error("error in login: %s", traceback.print_exc())
+        finally:
+            self.cleanup()
 
-    def normal_login(self, zap, target):
-        if self.auth_username_field_name:
-            userField = self.find_element(self.auth_username_field_name, None)
-            userField.clear()
-            userField.send_keys(self.auth_username)
+    def auto_login(self, login_url):
+        logging.info('authenticate using webdriver against URL: %s', login_url)
 
-        if self.auth_first_submit_field_name:
-            self.find_element(self.auth_first_submit_field_name, "//input[@type='submit']").click()
+        self.driver.get(login_url)
 
-        if self.auth_password_field_name:
-            passwordField = self.find_element(self.auth_password_field_name, None)
-            passwordField.clear()
-            passwordField.send_keys(self.auth_password)
+        # wait for the page to load
+        time.sleep(5)
 
-        self.find_element(self.auth_submit_field_name, "//input[@type='submit']").click()
+        logging.info('automatically finding login elements')
 
+        # fill out the username field
+        if self.auth_username:
+            self.find_and_fill_element(self.auth_username, 
+                                        self.auth_username_field_name,
+                                        "(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
+
+        # fill out the password field
+        if self.auth_password:
+            try:
+                self.find_and_fill_element(self.auth_password, 
+                                            self.auth_password_field_name,
+                                            "//input[@type='password' or contains(@name,'ass')]")
+            except:
+                logging.warning('Did not find the password field - clicking Next button and trying again')
+
+                # if the password field was not found, we probably need to submit to go to the password page 
+                # login flow: username -> next -> password -> submit
+                self.find_and_click_element(self.auth_submit_field_name, "//*[@type='submit' or @type='button']")
+
+                self.find_and_fill_element(self.auth_password, 
+                                            self.auth_password_field_name,
+                                            "//input[@type='password' or contains(@name,'ass')]")
+        
+        # submit
+        self.find_and_click_element(self.auth_submit_field_name, "//*[@type='submit' or @type='button']")
+        
+        # wait for the page to load
+        time.sleep(5)
+        
+    def find_and_click_element(self, name, xpath):
+        element = self.find_element(name, xpath)
+        element.click()
+        logging.info('Clicked the %s element', name)
+        
+    def find_and_fill_element(self, value, name, xpath):
+        element = self.find_element(name, xpath)
+        element.clear()
+        element.send_keys(value)
+        logging.info('Filled the %s element', name)
+
+    # 1. Find by ID attribute (case insensitive)
+    # 2. Find by Name attribute (case insensitive)
+    # 3. Find by xpath as fallback
     def find_element(self, name, xpath):
         element = None
-        try:
-            element = self.driver.find_element_by_id(name)
-        except NoSuchElementException:
+        logging.info('Trying to find element %s', name)
+
+        if name:
             try:
-                element = self.driver.find_element_by_name(name)
+                element = self.driver.find_element_by_xpath("//*[(translate(@id, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{0}')]".format(name))
+                logging.info('Found element %s by id', name)
             except NoSuchElementException:
                 try:
-                    element = self.driver.find_element_by_xpath(name)
+                    element = self.driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{0}')]".format(name))
+                    logging.info('Found element %s by name', name)
                 except NoSuchElementException:
-                    if xpath is None:
-                        raise
-
-                    element = self.driver.find_element_by_xpath(xpath)
+                    logging.warning('Could not find element %s by name or id', name)
+        
+        if xpath and not element:
+            element = self.driver.find_element_by_xpath(xpath)
+            logging.info('Found element %s by xpath', name)
 
         return element
 
     def cleanup(self):
-        self.driver.quit()
-        self.display.stop()
+        if self.driver:
+            self.driver.quit()
+        if self.display:
+            self.display.stop()
 
     def _get_zap_param(self, key):
         for param in self.extra_zap_params:
             if param.find(key) > -1:
-                return param[len(key) + 1:]
-        return ''
+                value = param[len(key) + 1:]
+                logging.info('_get_zap_param %s: %s', key, value)
+                return value
+
+    def _get_zap_param_list(self, key):
+        for param in self.extra_zap_params:
+            if param.find(key) > -1:
+                value = list(filter(None, param[len(key) + 1:].split(',')))
+                logging.info('_get_zap_param %s: %s', key, value)
+                return value
         
     def _get_zap_param_boolean(self, key):
         for param in self.extra_zap_params:
             if param.find(key) > -1:
-                return param[len(key) + 1:] in ['1', 'True', 'true']
-        return False
+                value = param[len(key) + 1:] in ['1', 'True', 'true']
+                logging.info('_get_zap_param_boolean %s: %s', key, value)
+                return value

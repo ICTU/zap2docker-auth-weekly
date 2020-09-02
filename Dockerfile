@@ -3,6 +3,10 @@
 FROM owasp/zap2docker-weekly
 LABEL maintainer="Dick Snel <dick.snel@ictu.nl>"
 
+RUN pip install selenium
+RUN pip install selenium-wire
+RUN pip install pyvirtualdisplay
+
 USER root
 
 RUN mkdir /zap/wrk && chown zap:zap /zap/wrk 
@@ -23,19 +27,17 @@ RUN cd /opt && \
 	tar xvf firefox.tar && \
 	ln -s /opt/firefox/firefox /usr/bin/firefox
 
-RUN pip install selenium
-RUN pip install pyvirtualdisplay
-
 # Support for using the deprecated version
 COPY zap-baseline-custom.py /zap/
 COPY auth_hook.py /zap/
 COPY zap_webdriver.py /zap/
+COPY localstorage.py /zap/
 
 RUN chown zap:zap /zap/zap-baseline-custom.py  && \
 		chown zap:zap /zap/auth_hook.py && \
 		chown zap:zap /zap/zap_webdriver.py && \
 		chmod +x /zap/zap-baseline-custom.py
 
-WORKDIR /zap
-
 USER zap
+
+WORKDIR /zap
