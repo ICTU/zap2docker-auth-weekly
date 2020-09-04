@@ -1,6 +1,12 @@
 # Owasp ZAP with support for authentication
 With the new [hook mechanism](https://github.com/zaproxy/zaproxy/issues/4925) in the ZAP Docker images authentication can implemented more easily compared to the original [implementation](https://github.com/ICTU/zap-baseline/blob/master/zap-baseline-custom.py).
 
+# Docker
+
+Please find the Docker container here:
+
+https://hub.docker.com/r/ictu/zap2docker-weekly
+
 # Examples
 
 1. Running a baseline scan (passive) and automatic authentication
