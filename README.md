@@ -11,7 +11,7 @@ https://hub.docker.com/r/ictu/zap2docker-weekly
 
 1. Running a baseline scan (passive) and automatic authentication
 ```
-docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py \
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -j -d -I \
   -t https://demo.website.net \
   -r testreport.html \
    --hook=/zap/auth_hook.py \ 
@@ -21,9 +21,9 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py
       auth.auto=1"
 ```
 
-2. Running a full scan (active) with manual authentication
+2. Running a full scan (active & max 60 minutes duration) with manual authentication
 ```
-docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py \
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py -j -d -I -T 60 \
   -t https://demo.website.net \
   -r testreport.html \
    --hook=/zap/auth_hook.py \
@@ -34,6 +34,7 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.p
       auth.password_field="j_password" \
       auth.submit_field="submit" \
       auth.exclude=".*logout.*,\Qhttp://url.com/logout\E.*"
+      auth.include="https://api.website.net/"
 ```
 
 Note: exclude URL's are comma separated regular expressions. Examples:
@@ -53,6 +54,7 @@ auth.password_field       The HTML name or id attribute of the password field
 auth.submit_field         The HTML name or id attribute of the submit field
 auth.first_submit_field   The HTML name or id attribute of the first submit field (in case of username -> next page -> password -> submit)
 auth.exclude              Comma separated list of excluded URL's. Default: (logout|uitloggen|afmelden)
+auth.include              Comma separated list of included URL's. The target URL is always included by default
 ```
 
 # Limitations
