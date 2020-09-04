@@ -9,10 +9,10 @@ def main(argv):
     logging.warning('Your version of ICTU/zap-baseline is deprecated and no longer supported. Please upgrade: https://github.com/ICTU/zap-baseline/')
 
     try:
-        opts, args = getopt.getopt(argv,'t:c:u:g:m:r:w:x:l:daijsz:', ['auth_display', 'auth_loginurl=', 'auth_username=', 'auth_auto', 'auth_password=', 'auth_usernamefield=', 'auth_passwordfield=', 'auth_firstsubmitfield=', 'auth_submitfield=', 'auth_exclude=', 'active_scan'])
+        opts = getopt.getopt(argv,'t:c:u:g:m:r:w:x:l:daijsz:', ['auth_display', 'auth_loginurl=', 'auth_username=', 'auth_auto', 'auth_password=', 'auth_usernamefield=', 'auth_passwordfield=', 'auth_firstsubmitfield=', 'auth_submitfield=', 'auth_exclude=', 'active_scan'])
     except getopt.GetoptError as exc:
         logging.warning('Invalid option ' + exc.opt + ' : ' + exc.msg)
-        usage()
+        #usage()
         sys.exit(3)
 
     scanmode = 'zap-baseline.py'
@@ -63,8 +63,8 @@ def main(argv):
         elif opt == '--active_scan':
             scanmode = 'zap-full-scan.py'
 
-    optionalargs = '"auth.loginurl="{}" auth.username="{}" auth.password="{}" auth.auto={} auth.username_field="{}" auth.password_field="{}" auth.submit_field="{}" auth.first_submit_field="{}" auth.exclude="{}""' \
-                   .format(auth_loginUrl, auth_username, auth_password, auth_auto, auth_username_field_name, auth_password_field_name, auth_submit_field_name, auth_first_submit_field_name, auth_excludeUrls)
+    optionalargs = '"auth.loginurl="{}" auth.username="{}" auth.password="{}" auth.auto={} auth.username_field="{}" auth.password_field="{}" auth.submit_field="{}" auth.first_submit_field="{}" auth.exclude="{}" auth.display="{}""' \
+                   .format(auth_loginUrl, auth_username, auth_password, auth_auto, auth_username_field_name, auth_password_field_name, auth_submit_field_name, auth_first_submit_field_name, auth_excludeUrls, auth_display)
     command = './{} -t {} -r {} {} -m {} -z {} -d --hook=/zap/auth_hook.py'.format(scanmode, target, report_html, report_xml, mins, optionalargs)
 
     logging.info('Starting: ' + command)

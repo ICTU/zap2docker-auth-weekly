@@ -5,7 +5,7 @@ With the new [hook mechanism](https://github.com/zaproxy/zaproxy/issues/4925) in
 
 1. Running a baseline scan (passive) and automatic authentication
 ```
-docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -j -I \
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -j -d -I \
   -t https://demo.website.net \
   -r testreport.html \
    --hook=/zap/auth_hook.py \ 
@@ -17,7 +17,7 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py
 
 2. Running a full scan (active & max 60 minutes duration) with manual authentication
 ```
-docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py -j -I -T 60 \
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py -j -d -I -T 60 \
   -t https://demo.website.net \
   -r testreport.html \
    --hook=/zap/auth_hook.py \
@@ -28,7 +28,7 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.p
       auth.password_field="j_password" \
       auth.submit_field="submit" \
       auth.exclude=".*logout.*,\Qhttp://url.com/logout\E.*"
-      auth.include="https://demo.website.net/api"
+      auth.include="https://api.website.net/"
 ```
 
 Note: exclude URL's are comma separated regular expressions. Examples:

@@ -4,28 +4,18 @@ FROM owasp/zap2docker-weekly
 LABEL maintainer="Dick Snel <dick.snel@ictu.nl>"
 
 RUN pip install selenium
-RUN pip install selenium-wire
 RUN pip install pyvirtualdisplay
 
 USER root
 
 RUN mkdir /zap/wrk && chown zap:zap /zap/wrk 
 
-# Install Selenium compatible firefox
-RUN apt-get -y remove firefox
-
 RUN cd /opt && \
-	wget -qO- -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.20.1/geckodriver-v0.20.1-linux64.tar.gz && \
+	wget -qO- -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.27.0/geckodriver-v0.27.0-linux64.tar.gz && \
 	tar -xvzf geckodriver.tar.gz && \
 	chmod +x geckodriver && \
 	ln -s /opt/geckodriver /usr/bin/geckodriver && \
 	export PATH=$PATH:/usr/bin/geckodriver
-
-RUN cd /opt && \
-	wget -qO- -O firefox.tar.bz2 http://ftp.mozilla.org/pub/firefox/releases/62.0.3/linux-x86_64/en-US/firefox-62.0.3.tar.bz2 && \
-	bunzip2 firefox.tar.bz2 && \
-	tar xvf firefox.tar && \
-	ln -s /opt/firefox/firefox /usr/bin/firefox
 
 # Support for using the deprecated version
 COPY zap-baseline-custom.py /zap/

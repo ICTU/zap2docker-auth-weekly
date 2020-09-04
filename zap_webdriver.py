@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import logging
 import string
 import os
@@ -30,21 +32,19 @@ class ZapWebdriver:
         self.auth_first_submit_field_name = self._get_zap_param('auth.first_submit_field') or 'next'
         self.auth_excludeUrls = self._get_zap_param_list('auth.exclude') or list()
         self.auth_includeUrls = self._get_zap_param_list('auth.include') or list()
+
+        #extra_zap_params.append('')
         
-    def setup_zap_context(self, zap, target):
-        logging.info('Setup a new context for target %s', target)
-        
-        # create a new context
-        contextName = 'auth'
-        zap.context.new_context(contextName)
-        
+    def configure_zap(self, zap, target):
+        # ZAP Docker scripts do not apply a context when running a spider or scan session, so this is not working
         # include everything below the target
-        self.auth_includeUrls.append(target)
-        
+        # self.auth_includeUrls.append(target)
+       
         # include additional url's
-        for include in self.auth_includeUrls:
-            zap.context.include_in_context(contextName, "\\Q" + include + "\\E.*")
-            logging.info('Context - included %s.*', include)
+        # for include in self.auth_includeUrls:
+        #     zap.context.include_in_context(contextName, "\\Q" + include + "\\E.*")
+        #     zap.context.include_in_context(contextName, include + ".*")
+        #     logging.info('Context - included %s.*', include)
 
         # exclude all urls that end the authenticated session
         if len(self.auth_excludeUrls) == 0:
@@ -52,42 +52,33 @@ class ZapWebdriver:
             self.auth_excludeUrls.append('.*uitloggen.*')
             self.auth_excludeUrls.append('.*afmelden.*')
             self.auth_excludeUrls.append('.*signout.*')
+            self.auth_excludeUrls.append('.*sitemap.*')
 
         for exclude in self.auth_excludeUrls:
             zap.spider.exclude_from_scan(exclude)
-            zap.context.exclude_from_context(contextName, exclude)
-            logging.info('Context - excluded %s', exclude)
-
-        # set the context in scope
-        zap.context.set_context_in_scope(contextName, True)
-        zap.context.set_context_in_scope('Default Context', False)
+            zap.ascan.exclude_from_scan(exclude)
+            logging.info('Excluded %s', exclude)
 
     def setup_webdriver(self):
-        logging.info('Setup proxy for webdriver')
-
-        profile = webdriver.FirefoxProfile()
-        profile.accept_untrusted_certs = True
-        profile.set_preference('network.proxy.http', self.zap_ip)
-        profile.set_preference('network.proxy.http_port', self.zap_port)
-        profile.set_preference('network.proxy.ssl', self.zap_ip)
-        profile.set_preference('network.proxy.ssl_port', self.zap_port)
-        profile.set_preference('browser.startup.homepage_override.mstone', 'ignore')
-        profile.set_preference('startup.homepage_welcome_url.additional', 'about:blank')
+        logging.info('Start display')
 
         self.display = Display(visible=self.auth_display, size=(1024, 768))
         self.display.start()
 
         logging.info('Start webdriver')
+
+        profile = webdriver.FirefoxProfile()
+        profile.accept_untrusted_certs = True
         self.driver = webdriver.Firefox(profile)
 
     def login(self, zap, target):
         if not self.auth_loginUrl:
-            logging.info('No login URL provided - skipping authentication')
+            logging.warning('No login URL provided - skipping authentication')
             return
 
         try:
             # setup the zap context
-            self.setup_zap_context(zap, target)
+            self.configure_zap(zap, target)
 
             # setup the webdriver
             self.setup_webdriver()
@@ -97,11 +88,19 @@ class ZapWebdriver:
             
             logging.info('Finding authentication cookies')
 
+            # Create an empty session for session cookies
+            zap.httpsessions.add_session_token(target, 'session_token')
+            zap.httpsessions.create_empty_session(target, 'auth-session')
+
             # add all found cookies as session cookies
             for cookie in self.driver.get_cookies():
-                zap.replacer.add_rule(description = 'Cookie_' + cookie['name'], enabled = True, matchtype = 'REQ_HEADER', matchregex = False, matchstring = 'Cookie', replacement = cookie['name'] + '=' + cookie['value'])
-                logging.info('Cookie added: %s - Value: %s', cookie['name'], cookie['value'])
+                zap.httpsessions.set_session_token_value(target, 'auth-session', cookie['name'], cookie['value'])
+                logging.info('Cookie added: %s=%s', cookie['name'], cookie['value'])
 
+            # Mark the session as active
+            zap.httpsessions.set_active_session(target, 'auth-session')
+            logging.info('Active session: %s', zap.httpsessions.active_session(target))
+            
             logging.info('Finding authentication headers')
 
             # try to find JWT tokens in LocalStorage and add them as Authorization header
@@ -133,6 +132,7 @@ class ZapWebdriver:
         if self.auth_username:
             self.find_and_fill_element(self.auth_username, 
                                         self.auth_username_field_name,
+                                        "input",
                                         "(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
 
         # fill out the password field
@@ -140,31 +140,33 @@ class ZapWebdriver:
             try:
                 self.find_and_fill_element(self.auth_password, 
                                             self.auth_password_field_name,
+                                            "password",
                                             "//input[@type='password' or contains(@name,'ass')]")
             except:
                 logging.warning('Did not find the password field - clicking Next button and trying again')
 
                 # if the password field was not found, we probably need to submit to go to the password page 
                 # login flow: username -> next -> password -> submit
-                self.find_and_click_element(self.auth_submit_field_name, "//*[@type='submit' or @type='button']")
+                self.find_and_click_element(self.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
 
                 self.find_and_fill_element(self.auth_password, 
                                             self.auth_password_field_name,
+                                            "password"
                                             "//input[@type='password' or contains(@name,'ass')]")
         
         # submit
-        self.find_and_click_element(self.auth_submit_field_name, "//*[@type='submit' or @type='button']")
+        self.find_and_click_element(self.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
         
         # wait for the page to load
         time.sleep(5)
         
-    def find_and_click_element(self, name, xpath):
-        element = self.find_element(name, xpath)
+    def find_and_click_element(self, name, element_type, xpath):
+        element = self.find_element(name, element_type, xpath)
         element.click()
         logging.info('Clicked the %s element', name)
         
-    def find_and_fill_element(self, value, name, xpath):
-        element = self.find_element(name, xpath)
+    def find_and_fill_element(self, value, name, element_type, xpath):
+        element = self.find_element(name, element_type, xpath)
         element.clear()
         element.send_keys(value)
         logging.info('Filled the %s element', name)
@@ -172,17 +174,19 @@ class ZapWebdriver:
     # 1. Find by ID attribute (case insensitive)
     # 2. Find by Name attribute (case insensitive)
     # 3. Find by xpath as fallback
-    def find_element(self, name, xpath):
+    def find_element(self, name, element_type, xpath):
         element = None
         logging.info('Trying to find element %s', name)
 
         if name:
             try:
-                element = self.driver.find_element_by_xpath("//*[(translate(@id, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{0}')]".format(name))
+                path = self.build_xpath(name, "id", element_type)
+                element = self.driver.find_element_by_xpath(path)
                 logging.info('Found element %s by id', name)
             except NoSuchElementException:
                 try:
-                    element = self.driver.find_element_by_xpath("//*[(translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{0}')]".format(name))
+                    path = self.build_xpath(name, "name", element_type)
+                    element = self.driver.find_element_by_xpath(path)
                     logging.info('Found element %s by name', name)
                 except NoSuchElementException:
                     logging.warning('Could not find element %s by name or id', name)
@@ -192,6 +196,25 @@ class ZapWebdriver:
             logging.info('Found element %s by xpath', name)
 
         return element
+
+    def build_xpath(self, name, find_by, element_type):
+        xpath = "translate(@{0}, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{1}'".format(find_by, name)
+
+        if element_type == 'input':
+            match_type = "@type='text'"
+        if element_type == 'password':
+            match_type = "@type='text' or @type='password'"
+        if element_type == 'submit':
+            match_type = "@type='submit' or @type='button'"
+
+        if match_type:
+            xpath = "//*[({0}) and ({1})]".format(xpath, match_type)
+        else:
+            xpath = "//*[{0}]".format(xpath)
+
+        logging.info('Built xpath: %s', xpath)
+
+        return xpath
 
     def cleanup(self):
         if self.driver:
