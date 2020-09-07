@@ -27,3 +27,5 @@ def zap_access_target(zap, target):
     except:
         logging.error("error in zap_access_target: %s", traceback.print_exc())
         os._exit(1)
+
+    return zap, target

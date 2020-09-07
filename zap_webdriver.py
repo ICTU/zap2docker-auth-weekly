@@ -8,6 +8,7 @@ import urllib
 import time
 import re
 import traceback
+import zap_common
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -17,6 +18,9 @@ from pyvirtualdisplay import Display
 import localstorage
 
 class ZapWebdriver:
+    driver = None
+    display = None
+
     def load_from_extra_zap_params(self, port, extra_zap_params):
         self.zap_ip = 'localhost'
         self.extra_zap_params = extra_zap_params
@@ -32,19 +36,21 @@ class ZapWebdriver:
         self.auth_first_submit_field_name = self._get_zap_param('auth.first_submit_field') or 'next'
         self.auth_excludeUrls = self._get_zap_param_list('auth.exclude') or list()
         self.auth_includeUrls = self._get_zap_param_list('auth.include') or list()
-
-        #extra_zap_params.append('')
         
     def configure_zap(self, zap, target):
-        # ZAP Docker scripts do not apply a context when running a spider or scan session, so this is not working
+        context_name = 'ctx-zap-docker'
+        context_id = zap.context.new_context(context_name)
+
+        zap_common.context_name = context_name
+        zap_common.context_id = context_id
+        
         # include everything below the target
-        # self.auth_includeUrls.append(target)
+        self.auth_includeUrls.append(target + '.*')
        
         # include additional url's
-        # for include in self.auth_includeUrls:
-        #     zap.context.include_in_context(contextName, "\\Q" + include + "\\E.*")
-        #     zap.context.include_in_context(contextName, include + ".*")
-        #     logging.info('Context - included %s.*', include)
+        for include in self.auth_includeUrls:
+            zap.context.include_in_context(context_name, include)
+            logging.info('Included %s', include)
 
         # exclude all urls that end the authenticated session
         if len(self.auth_excludeUrls) == 0:
@@ -52,11 +58,9 @@ class ZapWebdriver:
             self.auth_excludeUrls.append('.*uitloggen.*')
             self.auth_excludeUrls.append('.*afmelden.*')
             self.auth_excludeUrls.append('.*signout.*')
-            self.auth_excludeUrls.append('.*sitemap.*')
 
         for exclude in self.auth_excludeUrls:
-            zap.spider.exclude_from_scan(exclude)
-            zap.ascan.exclude_from_scan(exclude)
+            zap.context.exclude_from_context(context_name, exclude)
             logging.info('Excluded %s', exclude)
 
     def setup_webdriver(self):
@@ -72,13 +76,13 @@ class ZapWebdriver:
         self.driver = webdriver.Firefox(profile)
 
     def login(self, zap, target):
-        if not self.auth_loginUrl:
-            logging.warning('No login URL provided - skipping authentication')
-            return
-
         try:
             # setup the zap context
             self.configure_zap(zap, target)
+            
+            if not self.auth_loginUrl:
+                logging.warning('No login URL provided - skipping authentication')
+                return
 
             # setup the webdriver
             self.setup_webdriver()
