@@ -11,7 +11,7 @@ https://hub.docker.com/r/ictu/zap2docker-weekly
 
 1. Running a passive scan with automatic authentication.
 ```
-docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -I \
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -I -j \
   -t https://demo.website.net \
   -r testreport.html \
    --hook=/zap/auth_hook.py \ 
@@ -23,7 +23,7 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py
 
 2. Running a full scan (max 10 mins spider and max 60 min scanning) with manual authentication and including an additional URL in the scope.
 ```
-docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py -I -m 10 -T 60 \
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py -I -j -m 10 -T 60 \
   -t https://demo.website.net \
   -r testreport.html \
    --hook=/zap/auth_hook.py \
@@ -42,8 +42,8 @@ Note: exclude URL's are comma separated regular expressions. Examples:
 .*logout.*,http://url.com/logout.*
 ```
 
-Note: If this is a SPA application add the param: `-j`. This enables the AJAX Spider.
 Note: 
+`-j` means the AJAX spider is enabled (in addition to the default spider)
 `-m 60` limits the spider to 60 minutes. 
 `-T 60` limits the scanner to 60 minutes.
 Note: `-I` means do not return an errorcode if there are issues found.
