@@ -1,11 +1,14 @@
-# Owasp ZAP with support for authentication
-With the new [hook mechanism](https://github.com/zaproxy/zaproxy/issues/4925) in the ZAP Docker images authentication can implemented more easily compared to the original [implementation](https://github.com/ICTU/zap-baseline/blob/master/zap-baseline-custom.py).
+# Automatic Authentication for OWASP ZAP Docker
+This project adds support to perform authenticated scans using the OWASP ZAP Docker scanscripts (https://www.zaproxy.org/docs/docker/). These main features are available:
+
+- Automatically or manually filling and completing loginforms.
+- Records the sessiontoken (a cookie or Authorization header) and adds it to all spider and scanning requests.
+- Exclude URL's to prevent termination of the session (such as /logout).
+- Include additional URL's such as api.web.com which will also be spidered and scanned with the recorded sessiontoken.
 
 # Docker
 
-Please find the Docker container here:
-
-https://hub.docker.com/r/ictu/zap2docker-weekly
+Please find the Docker container here: https://hub.docker.com/r/ictu/zap2docker-weekly
 
 # Examples
 
@@ -67,4 +70,4 @@ auth.include              Comma separated list of included URL's (regex). Defaul
 
 # Limitations
 1. Since this authentication solution uses a webdriver a [custom image](https://hub.docker.com/repository/docker/ictu/zap2docker-weekly) is needed to meet these requirements.
-2. Cookies that are automatically set by this script will not add flags like HttpOnly, Secure and SameSite. ZAP doest not support setting these cookies using the API. This will result in false-positives in the report regarding these flags.
+2. Cookies that are automatically set by this script will not add flags like HttpOnly, Secure and SameSite. ZAP does not support setting these cookies using the API. This will result in false-positives in the report regarding these flags.
