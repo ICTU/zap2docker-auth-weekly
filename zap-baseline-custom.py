@@ -30,6 +30,7 @@ def main(argv):
     auth_submit_field_name = ''
     auth_first_submit_field_name = ''
     auth_excludeUrls = ''
+    auth_display = False
 
     for opt, arg in opts:
         if opt == '-t':
