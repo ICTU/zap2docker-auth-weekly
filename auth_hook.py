@@ -23,6 +23,11 @@ def start_zap(port, extra_zap_params):
 
 def zap_access_target(zap, target):
     try:
+        # ZAP Docker scripts reset the target to the root URL
+        if target.count('/') > 2:
+            # The url can include a valid path, but always reset to spider the host
+            target = target[0:target.index('/', 8)+1]
+
         webdriver.login(zap, target)
     except:
         logging.error("error in zap_access_target: %s", traceback.print_exc())
