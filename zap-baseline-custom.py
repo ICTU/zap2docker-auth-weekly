@@ -9,7 +9,7 @@ def main(argv):
     logging.warning('Your version of ICTU/zap-baseline is deprecated and no longer supported. Please upgrade: https://github.com/ICTU/zap-baseline/')
 
     try:
-        opts = getopt.getopt(argv,'t:c:u:g:m:r:w:x:l:daijsz:', ['auth_display', 'auth_loginurl=', 'auth_username=', 'auth_auto', 'auth_password=', 'auth_usernamefield=', 'auth_passwordfield=', 'auth_firstsubmitfield=', 'auth_submitfield=', 'auth_exclude=', 'active_scan'])
+        opts, args = getopt.getopt(argv,'t:c:u:g:m:r:w:x:l:daijsz:', ['auth_display', 'auth_loginurl=', 'auth_username=', 'auth_auto', 'auth_password=', 'auth_usernamefield=', 'auth_passwordfield=', 'auth_firstsubmitfield=', 'auth_submitfield=', 'auth_exclude=', 'active_scan'])
     except getopt.GetoptError as exc:
         logging.warning('Invalid option ' + exc.opt + ' : ' + exc.msg)
         #usage()
