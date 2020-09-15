@@ -178,26 +178,30 @@ class ZapWebdriver:
     # 1. Find by ID attribute (case insensitive)
     # 2. Find by Name attribute (case insensitive)
     # 3. Find by xpath as fallback
-    def find_element(self, name, element_type, xpath):
+    def find_element(self, name_or_xpath, element_type, xpath):
         element = None
-        logging.info('Trying to find element %s', name)
+        logging.info('Trying to find element %s', name_or_xpath)
 
-        if name:
+        if name_or_xpath:
             try:
-                path = self.build_xpath(name, "id", element_type)
+                path = self.build_xpath(name_or_xpath, "id", element_type)
                 element = self.driver.find_element_by_xpath(path)
-                logging.info('Found element %s by id', name)
+                logging.info('Found element %s by id', name_or_xpath)
             except NoSuchElementException:
                 try:
-                    path = self.build_xpath(name, "name", element_type)
+                    path = self.build_xpath(name_or_xpath, "name", element_type)
                     element = self.driver.find_element_by_xpath(path)
-                    logging.info('Found element %s by name', name)
+                    logging.info('Found element %s by name', name_or_xpath)
                 except NoSuchElementException:
-                    logging.warning('Could not find element %s by name or id', name)
+                    try:
+                        element = self.driver.find_element_by_xpath(name_or_xpath)
+                        logging.info('Found element %s by xpath (name)', name_or_xpath)
+                    except NoSuchElementException:
+                        logging.warning('Could not find element %s by id, name or xpath (name)', name_or_xpath)
         
         if xpath and not element:
             element = self.driver.find_element_by_xpath(xpath)
-            logging.info('Found element %s by xpath', name)
+            logging.info('Found element %s by xpath', xpath)
 
         return element
 
