@@ -38,6 +38,9 @@ class ZapWebdriver:
         self.auth_includeUrls = self._get_zap_param_list('auth.include') or list()
         
     def configure_zap(self, zap, target):
+        # Set a X-Scanner header to requests can be identified in logs
+        zap.replacer.add_rule(description = 'Scanner', enabled = True, matchtype = 'REQ_HEADER', matchregex = False, matchstring = 'X-Scanner', replacement = "ZAP")
+
         context_name = 'ctx-zap-docker'
         context_id = zap.context.new_context(context_name)
 
