@@ -38,7 +38,7 @@ class ZapWebdriver:
         self.auth_includeUrls = self._get_zap_param_list('auth.include') or list()
         
     def configure_zap(self, zap, target):
-        # Set a X-Scanner header to requests can be identified in logs
+        # Set a X-Scanner header so requests can be identified in logs
         zap.replacer.add_rule(description = 'Scanner', enabled = True, matchtype = 'REQ_HEADER', matchregex = False, matchstring = 'X-Scanner', replacement = "ZAP")
 
         context_name = 'ctx-zap-docker'
@@ -212,7 +212,7 @@ class ZapWebdriver:
         xpath = "translate(@{0}, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{1}'".format(find_by, name)
 
         if element_type == 'input':
-            match_type = "@type='text'"
+            match_type = "@type='text' or not(@type)"
         if element_type == 'password':
             match_type = "@type='text' or @type='password'"
         if element_type == 'submit':

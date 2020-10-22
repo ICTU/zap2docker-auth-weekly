@@ -1,5 +1,5 @@
 # Automatic Authentication for OWASP ZAP Docker
-This project adds support to perform authenticated scans using the OWASP ZAP Docker scanscripts (https://www.zaproxy.org/docs/docker/). These main features are available:
+This project adds support to perform authenticated scans using the OWASP ZAP Docker [scanscripts](https://www.zaproxy.org/docs/docker/). These main features are available:
 
 - Automatically or manually filling and completing loginforms.
 - Records the sessiontoken (a cookie or Authorization header) and adds it to all spider and scanning requests.
@@ -8,7 +8,7 @@ This project adds support to perform authenticated scans using the OWASP ZAP Doc
 
 # Docker
 
-Please find the Docker container here: https://hub.docker.com/r/ictu/zap2docker-weekly
+You can find the Docker image on [ictu/zap2docker-weekly](https://hub.docker.com/r/ictu/zap2docker-weekly)
 
 # Examples
 
@@ -40,7 +40,7 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.p
       auth.include="https://api.website.net.*"
 ```
 
-Note: exclude URL's are comma separated regular expressions. Examples:
+Note: exclude and include URL's are comma separated regular expressions. Examples:
 ```
 .*logout.*,http://url.com/logout.*
 ```
