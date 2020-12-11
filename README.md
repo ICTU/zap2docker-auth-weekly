@@ -17,7 +17,7 @@ You can find the Docker image on [ictu/zap2docker-weekly](https://hub.docker.com
 docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -I -j \
   -t https://demo.website.net \
   -r testreport.html \
-   --hook=/zap/auth_hook.py \ 
+   --hook=/zap/auth_hook.py \
   -z "auth.loginurl=https://demo.website.net/login/index.php \
       auth.username="admin" \
       auth.password="sandbox" \

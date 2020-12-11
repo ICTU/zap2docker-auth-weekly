@@ -21,7 +21,7 @@ def start_zap(port, extra_zap_params):
         logging.error("error in start_zap: %s", traceback.print_exc())
         os._exit(1)
 
-def zap_access_target(zap, target):
+def zap_started(zap, target):
     try:
         # ZAP Docker scripts reset the target to the root URL
         if target.count('/') > 2:
@@ -30,7 +30,7 @@ def zap_access_target(zap, target):
 
         webdriver.login(zap, target)
     except:
-        logging.error("error in zap_access_target: %s", traceback.print_exc())
+        logging.error("error in zap_started: %s", traceback.print_exc())
         os._exit(1)
 
     return zap, target

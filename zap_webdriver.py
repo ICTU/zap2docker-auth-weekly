@@ -9,6 +9,7 @@ import time
 import re
 import traceback
 import zap_common
+import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -22,6 +23,8 @@ class ZapWebdriver:
     display = None
 
     def load_from_extra_zap_params(self, port, extra_zap_params):
+        logging.info("Extra params passed by ZAP: %s", extra_zap_params)
+
         self.zap_ip = 'localhost'
         self.extra_zap_params = extra_zap_params
         self.zap_port = port
@@ -30,6 +33,7 @@ class ZapWebdriver:
         self.auth_loginUrl = self._get_zap_param('auth.loginurl') or ''
         self.auth_username = self._get_zap_param('auth.username') or ''
         self.auth_password = self._get_zap_param('auth.password') or ''
+        self.auth_token_endpoint = self._get_zap_param('auth.token_endpoint') or ''
         self.auth_username_field_name = self._get_zap_param('auth.username_field') or 'username'
         self.auth_password_field_name = self._get_zap_param('auth.password_field') or 'password'
         self.auth_submit_field_name = self._get_zap_param('auth.submit_field') or 'login'
@@ -107,18 +111,24 @@ class ZapWebdriver:
             # Mark the session as active
             zap.httpsessions.set_active_session(target, 'auth-session')
             logging.info('Active session: %s', zap.httpsessions.active_session(target))
-            
-            logging.info('Finding authentication headers')
 
-            # try to find JWT tokens in LocalStorage and add them as Authorization header
-            storage = localstorage.LocalStorage(self.driver)
-            for key in storage.items():
-                logging.info("Found storage item: %s: %s", key, storage.get(key))
-                match = re.search('(eyJ[^"]*)', storage.get(key))
-                if match:
-                    auth_header = "Bearer " + match.group()
-                    zap.replacer.add_rule(description = 'AuthHeader', enabled = True, matchtype = 'REQ_HEADER', matchregex = False, matchstring = 'Authorization', replacement = auth_header)
-                    logging.info("Authorization header added: %s", auth_header)
+            if self.auth_token_endpoint:
+                logging.info('Fetching authentication token from endpoint')
+
+                auth_header = self.fetch_oauth_token(self.auth_token_endpoint, self.username, self.password)
+                zap.replacer.add_rule(description = 'AuthHeader', enabled = True, matchtype = 'REQ_HEADER', matchregex = False, matchstring = 'Authorization', replacement = auth_header)
+            else:
+                logging.info('Finding authentication headers')
+
+                # try to find JWT tokens in LocalStorage and add them as Authorization header
+                storage = localstorage.LocalStorage(self.driver)
+                for key in storage.items():
+                    logging.info("Found storage item: %s: %s", key, storage.get(key))
+                    match = re.search('(eyJ[^"]*)', storage.get(key))
+                    if match:
+                        auth_header = "Bearer " + match.group()
+                        zap.replacer.add_rule(description = 'AuthHeader', enabled = True, matchtype = 'REQ_HEADER', matchregex = False, matchstring = 'Authorization', replacement = auth_header)
+                        logging.info("Authorization header added: %s", auth_header)
 
         except:
             logging.error("error in login: %s", traceback.print_exc())
@@ -166,6 +176,14 @@ class ZapWebdriver:
         
         # wait for the page to load
         time.sleep(5)
+
+    def fetch_oauth_token(self, token_endpoint, username, password):
+        response = requests.post(url = token_endpoint, params = { 'username': username, 'password': password }) 
+        data = response.json() 
+        token = data['access_token']
+        token_type = data['token_type']
+        auth_header = '{} {}'.format(token, token_type)
+        return auth_header
         
     def find_and_click_element(self, name, element_type, xpath):
         element = self.find_element(name, element_type, xpath)
