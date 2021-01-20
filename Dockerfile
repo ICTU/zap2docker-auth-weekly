@@ -14,6 +14,9 @@ RUN mkdir /zap/wrk \
 	&& export PATH=$PATH:/usr/bin/geckodriver
 
 ADD . /zap/
+
+ADD bxss.js /home/zap/.ZAP_D/scripts/scripts/active/bxss.js
+
 RUN pip install -r /zap/requirements.txt \
 	&& chown -R zap:zap /zap/ \
 	&& chmod +x /zap/zap-baseline-custom.py
