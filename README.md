@@ -70,7 +70,7 @@ auth.include              Comma separated list of included URL's (regex). Defaul
 
 # Blind XSS Payloads
 
-This hook supports injecting Blind XSS payloads. You need to provide your callback URL which the XSS payload should trigger. This hook will automatically inject your payload in all possible locations like input fields, headers and cookies.
+This hook supports injecting Blind XSS payloads. You need to provide your callback URL which the XSS payload should trigger. This hook will automatically inject your payload in all possible locations like input fields, headers and cookies. (thanks to @greckko)
 
 The below example uses [XSSHunter](https://xsshunter.com/) as a callback:
 
