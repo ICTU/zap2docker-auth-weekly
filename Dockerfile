@@ -15,7 +15,8 @@ RUN mkdir /zap/wrk \
 
 ADD . /zap/
 
-ADD bxss.js /home/zap/.ZAP_D/scripts/scripts/active/bxss.js
+ADD scripts /home/zap/.ZAP_D/scripts/scripts/active/
+RUN chmod 777 /home/zap/.ZAP_D/scripts/scripts/active/
 
 RUN pip install -r /zap/requirements.txt \
 	&& chown -R zap:zap /zap/ \
