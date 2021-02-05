@@ -1,15 +1,13 @@
 #!/usr/bin/python
 
 import logging
-import string
-import os
 import time
-import urllib
 import time
 import re
 import traceback
-import zap_common
 import requests
+import zap_config
+import zap_common
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -18,31 +16,12 @@ from selenium.common.exceptions import NoSuchElementException
 from pyvirtualdisplay import Display
 import localstorage
 
-class ZapWebdriver:
+class ZapAuth:
     driver = None
     display = None
 
-    def load_from_extra_zap_params(self, port, extra_zap_params):
-        logging.info("Extra params passed by ZAP: %s", extra_zap_params)
-
-        self.zap_ip = 'localhost'
-        self.extra_zap_params = extra_zap_params
-        self.zap_port = port
-        self.auth_auto = self._get_zap_param_boolean('auth.auto') or True
-        self.auth_display = self._get_zap_param_boolean('auth.display') or False
-        self.auth_loginUrl = self._get_zap_param('auth.loginurl') or ''
-        self.auth_username = self._get_zap_param('auth.username') or ''
-        self.auth_password = self._get_zap_param('auth.password') or ''
-        self.auth_token_endpoint = self._get_zap_param('auth.token_endpoint') or ''
-        self.auth_username_field_name = self._get_zap_param('auth.username_field') or 'username'
-        self.auth_password_field_name = self._get_zap_param('auth.password_field') or 'password'
-        self.auth_submit_field_name = self._get_zap_param('auth.submit_field') or 'login'
-        self.auth_first_submit_field_name = self._get_zap_param('auth.first_submit_field') or 'next'
-        self.auth_excludeUrls = self._get_zap_param_list('auth.exclude') or list()
-        self.auth_includeUrls = self._get_zap_param_list('auth.include') or list()
-        
-    def configure_zap(self, zap, target):
-        # Set a X-Scanner header so requests can be identified in logs
+    def setup_context(self, config: zap_config.ZapConfig, zap, target):
+        # Set an X-Scanner header so requests can be identified in logs
         zap.replacer.add_rule(description = 'Scanner', enabled = True, matchtype = 'REQ_HEADER', matchregex = False, matchstring = 'X-Scanner', replacement = "ZAP")
 
         context_name = 'ctx-zap-docker'
@@ -52,28 +31,28 @@ class ZapWebdriver:
         zap_common.context_id = context_id
         
         # include everything below the target
-        self.auth_includeUrls.append(target + '.*')
+        config.auth_includeUrls.append(target + '.*')
        
         # include additional url's
-        for include in self.auth_includeUrls:
+        for include in config.auth_includeUrls:
             zap.context.include_in_context(context_name, include)
             logging.info('Included %s', include)
 
         # exclude all urls that end the authenticated session
-        if len(self.auth_excludeUrls) == 0:
-            self.auth_excludeUrls.append('.*logout.*')
-            self.auth_excludeUrls.append('.*uitloggen.*')
-            self.auth_excludeUrls.append('.*afmelden.*')
-            self.auth_excludeUrls.append('.*signout.*')
+        if len(config.auth_excludeUrls) == 0:
+            config.auth_excludeUrls.append('.*logout.*')
+            config.auth_excludeUrls.append('.*uitloggen.*')
+            config.auth_excludeUrls.append('.*afmelden.*')
+            config.auth_excludeUrls.append('.*signout.*')
 
-        for exclude in self.auth_excludeUrls:
+        for exclude in config.auth_excludeUrls:
             zap.context.exclude_from_context(context_name, exclude)
             logging.info('Excluded %s', exclude)
 
-    def setup_webdriver(self):
+    def setup_webdriver(self, config: zap_config.ZapConfig):
         logging.info('Start display')
 
-        self.display = Display(visible=self.auth_display, size=(1024, 768))
+        self.display = Display(visible=config.auth_display, size=(1024, 768))
         self.display.start()
 
         logging.info('Start webdriver')
@@ -82,20 +61,20 @@ class ZapWebdriver:
         profile.accept_untrusted_certs = True
         self.driver = webdriver.Firefox(profile)
 
-    def login(self, zap, target):
+    def login(self, config: zap_config.ZapConfig, zap, target):
         try:
             # setup the zap context
-            self.configure_zap(zap, target)
+            self.setup_context(config, zap, target)
             
-            if not self.auth_loginUrl:
+            if not config.auth_loginUrl:
                 logging.warning('No login URL provided - skipping authentication')
                 return
 
             # setup the webdriver
-            self.setup_webdriver()
+            self.setup_webdriver(config)
 
             # login to the application
-            self.auto_login(self.auth_loginUrl)
+            self.auto_login(config)
             
             logging.info('Finding authentication cookies')
 
@@ -112,10 +91,10 @@ class ZapWebdriver:
             zap.httpsessions.set_active_session(target, 'auth-session')
             logging.info('Active session: %s', zap.httpsessions.active_session(target))
 
-            if self.auth_token_endpoint:
+            if config.auth_token_endpoint:
                 logging.info('Fetching authentication token from endpoint')
 
-                auth_header = self.fetch_oauth_token(self.auth_token_endpoint, self.username, self.password)
+                auth_header = self.fetch_oauth_token(config.auth_token_endpoint, config.username, config.password)
                 zap.replacer.add_rule(description = 'AuthHeader', enabled = True, matchtype = 'REQ_HEADER', matchregex = False, matchstring = 'Authorization', replacement = auth_header)
             else:
                 logging.info('Finding authentication headers')
@@ -123,7 +102,7 @@ class ZapWebdriver:
                 # try to find JWT tokens in LocalStorage and add them as Authorization header
                 storage = localstorage.LocalStorage(self.driver)
                 for key in storage.items():
-                    logging.info("Found storage item: %s: %s", key, storage.get(key))
+                    logging.info("Found storage item: %s: %s", key, storage.get(key)[:50])
                     match = re.search('(eyJ[^"]*)', storage.get(key))
                     if match:
                         auth_header = "Bearer " + match.group()
@@ -135,10 +114,10 @@ class ZapWebdriver:
         finally:
             self.cleanup()
 
-    def auto_login(self, login_url):
-        logging.info('authenticate using webdriver against URL: %s', login_url)
+    def auto_login(self, config: zap_config.ZapConfig):
+        logging.info('authenticate using webdriver against URL: %s', config.auth_loginUrl)
 
-        self.driver.get(login_url)
+        self.driver.get(config.auth_loginUrl)
 
         # wait for the page to load
         time.sleep(5)
@@ -146,17 +125,17 @@ class ZapWebdriver:
         logging.info('automatically finding login elements')
 
         # fill out the username field
-        if self.auth_username:
-            self.find_and_fill_element(self.auth_username, 
-                                        self.auth_username_field_name,
+        if config.auth_username:
+            self.find_and_fill_element(config.auth_username, 
+                                        config.auth_username_field_name,
                                         "input",
                                         "(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
 
         # fill out the password field
-        if self.auth_password:
+        if config.auth_password:
             try:
-                self.find_and_fill_element(self.auth_password, 
-                                            self.auth_password_field_name,
+                self.find_and_fill_element(config.auth_password, 
+                                            config.auth_password_field_name,
                                             "password",
                                             "//input[@type='password' or contains(@name,'ass')]")
             except:
@@ -164,15 +143,15 @@ class ZapWebdriver:
 
                 # if the password field was not found, we probably need to submit to go to the password page 
                 # login flow: username -> next -> password -> submit
-                self.find_and_click_element(self.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
+                self.find_and_click_element(config.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
 
-                self.find_and_fill_element(self.auth_password, 
-                                            self.auth_password_field_name,
+                self.find_and_fill_element(config.auth_password, 
+                                            config.auth_password_field_name,
                                             "password"
                                             "//input[@type='password' or contains(@name,'ass')]")
         
         # submit
-        self.find_and_click_element(self.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
+        self.find_and_click_element(config.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
         
         # wait for the page to load
         time.sleep(5)
@@ -228,6 +207,7 @@ class ZapWebdriver:
 
     def build_xpath(self, name, find_by, element_type):
         xpath = "translate(@{0}, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{1}'".format(find_by, name)
+        match_type = None
 
         if element_type == 'input':
             match_type = "@type='text' or not(@type)"
@@ -250,24 +230,3 @@ class ZapWebdriver:
             self.driver.quit()
         if self.display:
             self.display.stop()
-
-    def _get_zap_param(self, key):
-        for param in self.extra_zap_params:
-            if param.find(key) > -1:
-                value = param[len(key) + 1:]
-                logging.info('_get_zap_param %s: %s', key, value)
-                return value
-
-    def _get_zap_param_list(self, key):
-        for param in self.extra_zap_params:
-            if param.find(key) > -1:
-                value = list(filter(None, param[len(key) + 1:].split(',')))
-                logging.info('_get_zap_param %s: %s', key, value)
-                return value
-        
-    def _get_zap_param_boolean(self, key):
-        for param in self.extra_zap_params:
-            if param.find(key) > -1:
-                value = param[len(key) + 1:] in ['1', 'True', 'true']
-                logging.info('_get_zap_param_boolean %s: %s', key, value)
-                return value

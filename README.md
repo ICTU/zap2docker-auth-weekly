@@ -10,7 +10,7 @@ This project adds support to perform authenticated scans using the OWASP ZAP Doc
 
 You can find the Docker image on [ictu/zap2docker-weekly](https://hub.docker.com/r/ictu/zap2docker-weekly)
 
-# Examples
+# Examples using authentication
 
 1. Running a passive scan with automatic authentication.
 ```
@@ -46,14 +46,14 @@ Note: exclude and include URL's are comma separated regular expressions. Example
 ```
 
 Note: 
-`-j` means the AJAX spider is enabled (in addition to the default spider)
+`-j` enable the AJAX spider (in addition to the default spider)
 `-m 60` limits the spider to 60 minutes. 
 `-T 60` limits the scanner to 60 minutes.
-Note: `-I` means do not return an errorcode if there are issues found.
+`-I` do not return an errorcode as exitcode if there are issues found.
 
 For more info on the different scantypes and parameters take a look at: https://www.zaproxy.org/docs/docker/
 
-# Extra parameters
+# Extra authentication parameters
 
 ```
 auth.auto                 Automatically try to find the login fields (username, password, submit). Default True.
@@ -66,6 +66,20 @@ auth.submit_field         The HTML name or id attribute of the submit field.
 auth.first_submit_field   The HTML name or id attribute of the first submit field (in case of username -> next page -> password -> submit).
 auth.exclude              Comma separated list of excluded URL's (regex). Default: (logout|uitloggen|afmelden|signout)
 auth.include              Comma separated list of included URL's (regex). Default: only the target URL and everything below it.
+```
+
+# Blind XSS Payloads
+
+This hook supports injecting Blind XSS payloads. You need to provide your callback URL which the XSS payload should trigger. This hook will automatically inject your payload in all possible locations like input fields, headers and cookies. (thanks to @greckko)
+
+The below example uses [XSSHunter](https://xsshunter.com/) as a callback:
+
+```
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py -I -j -m 10 -T 60 \
+  -t https://demo.website.net \
+  -r testreport.html \
+  --hook=/zap/auth_hook.py \
+  -z "xss.collector=xsshunter.xss.ht"
 ```
 
 # Limitations

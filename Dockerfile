@@ -14,6 +14,10 @@ RUN mkdir /zap/wrk \
 	&& export PATH=$PATH:/usr/bin/geckodriver
 
 ADD . /zap/
+
+ADD scripts /home/zap/.ZAP_D/scripts/scripts/active/
+RUN chmod 777 /home/zap/.ZAP_D/scripts/scripts/active/
+
 RUN pip install -r /zap/requirements.txt \
 	&& chown -R zap:zap /zap/ \
 	&& chmod +x /zap/zap-baseline-custom.py
