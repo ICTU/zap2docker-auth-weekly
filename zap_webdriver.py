@@ -53,7 +53,7 @@ class ZapWebdriver:
         
         # include everything below the target
         self.auth_includeUrls.append(target + '.*')
-       
+
         # include additional url's
         for include in self.auth_includeUrls:
             zap.context.include_in_context(context_name, include)
@@ -164,7 +164,9 @@ class ZapWebdriver:
 
                 # if the password field was not found, we probably need to submit to go to the password page 
                 # login flow: username -> next -> password -> submit
-                self.find_and_click_element(self.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
+                self.find_and_click_element(self.auth_submit_field_name,
+                                            "submit",
+                                            "//*[@type='submit' or @type='button']")
 
                 self.find_and_fill_element(self.auth_password, 
                                             self.auth_password_field_name,
@@ -172,7 +174,9 @@ class ZapWebdriver:
                                             "//input[@type='password' or contains(@name,'ass')]")
         
         # submit
-        self.find_and_click_element(self.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
+        self.find_and_click_element_2(self.auth_submit_field_name,
+                                    "submit",
+                                    "//input[@name='signInSubmitButton']")
         
         # wait for the page to load
         time.sleep(5)
@@ -189,12 +193,23 @@ class ZapWebdriver:
         element = self.find_element(name, element_type, xpath)
         element.click()
         logging.info('Clicked the %s element', name)
+    
+    def find_and_click_element_2(self, name, element_type, xpath):
+        element = self.find_element_2(xpath)
+        element.click()
+        logging.info('Clicked the %s element', name)
         
     def find_and_fill_element(self, value, name, element_type, xpath):
         element = self.find_element(name, element_type, xpath)
         element.clear()
         element.send_keys(value)
         logging.info('Filled the %s element', name)
+
+    def find_element_2(self, xpath):
+        element = None
+        element = self.driver.find_element_by_xpath(xpath)
+        logging.info('Found element (2) %s by xpath', xpath)
+        return element
 
     # 1. Find by ID attribute (case insensitive)
     # 2. Find by Name attribute (case insensitive)
@@ -234,7 +249,7 @@ class ZapWebdriver:
         if element_type == 'password':
             match_type = "@type='text' or @type='password'"
         if element_type == 'submit':
-            match_type = "@type='submit' or @type='button'"
+            match_type = "@type='submit' or @type='input'"
 
         if match_type:
             xpath = "//*[({0}) and ({1})]".format(xpath, match_type)
