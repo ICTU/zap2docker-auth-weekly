@@ -12,6 +12,7 @@ class ZapConfig:
         self.auth_loginUrl = self._get_zap_param('auth.loginurl') or ''
         self.auth_username = self._get_zap_param('auth.username') or ''
         self.auth_password = self._get_zap_param('auth.password') or ''
+        self.auth_password = self._get_zap_param('auth.auth_submitaction') or 'click'
         self.auth_token_endpoint = self._get_zap_param('auth.token_endpoint') or ''
         self.auth_username_field_name = self._get_zap_param('auth.username_field') or 'username'
         self.auth_password_field_name = self._get_zap_param('auth.password_field') or 'password'

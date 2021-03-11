@@ -124,12 +124,14 @@ class ZapAuth:
 
         logging.info('automatically finding login elements')
 
+        username_element = None
+
         # fill out the username field
         if config.auth_username:
-            self.find_and_fill_element(config.auth_username, 
-                                        config.auth_username_field_name,
-                                        "input",
-                                        "(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
+            username_element = self.find_and_fill_element(config.auth_username, 
+                                            config.auth_username_field_name,
+                                            "input",
+                                            "(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
 
         # fill out the password field
         if config.auth_password:
@@ -151,7 +153,11 @@ class ZapAuth:
                                             "//input[@type='password' or contains(@name,'ass')]")
         
         # submit
-        self.find_and_click_element(config.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
+        if config.auth_submitaction == "click":
+            self.find_and_click_element(config.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
+        elif username_element:
+            username_element.submit()
+            logging.info('Submitted the form')
         
         # wait for the page to load
         time.sleep(5)
@@ -174,6 +180,8 @@ class ZapAuth:
         element.clear()
         element.send_keys(value)
         logging.info('Filled the %s element', name)
+
+        return element
 
     # 1. Find by ID attribute (case insensitive)
     # 2. Find by Name attribute (case insensitive)
@@ -206,7 +214,7 @@ class ZapAuth:
         return element
 
     def build_xpath(self, name, find_by, element_type):
-        xpath = "translate(@{0}, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{1}'".format(find_by, name)
+        xpath = "translate(@{0}, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{1}'".format(find_by, name.lower())
         match_type = None
 
         if element_type == 'input':
