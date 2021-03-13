@@ -131,7 +131,7 @@ class ZapAuth:
             username_element = self.find_and_fill_element(config.auth_username, 
                                             config.auth_username_field_name,
                                             "input",
-                                            "(//input[(@type='text' and contains(@name,'ser')) or @type='text'])[1]")
+                                            "(//input[(@type='text' or @type='email' and contains(@name,'ser')) or @type='text'])[1]")
 
         # fill out the password field
         if config.auth_password:
@@ -218,7 +218,7 @@ class ZapAuth:
         match_type = None
 
         if element_type == 'input':
-            match_type = "@type='text' or not(@type)"
+            match_type = "@type='text' or @type='email' or not(@type)"
         if element_type == 'password':
             match_type = "@type='text' or @type='password'"
         if element_type == 'submit':
