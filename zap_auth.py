@@ -114,6 +114,14 @@ class ZapAuth:
         finally:
             self.cleanup()
 
+    def fetch_oauth_token(self, token_endpoint, username, password):
+        response = requests.post(url = token_endpoint, params = { 'username': username, 'password': password }) 
+        data = response.json() 
+        token = data['access_token']
+        token_type = data['token_type']
+        auth_header = '{} {}'.format(token, token_type)
+        return auth_header
+
     def auto_login(self, config: zap_config.ZapConfig):
         logging.info('authenticate using webdriver against URL: %s', config.auth_loginUrl)
 
@@ -145,35 +153,26 @@ class ZapAuth:
 
                 # if the password field was not found, we probably need to submit to go to the password page 
                 # login flow: username -> next -> password -> submit
-                self.find_and_click_element(config.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
-
+                self.submit_form(username_element)
                 self.find_and_fill_element(config.auth_password, 
                                             config.auth_password_field_name,
                                             "password"
                                             "//input[@type='password' or contains(@name,'ass')]")
         
         # submit
-        if config.auth_submitaction == "click":
-            self.find_and_click_element(config.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
-        elif username_element:
-            username_element.submit()
-            logging.info('Submitted the form')
+        self.submit_form(username_element)
         
         # wait for the page to load
         time.sleep(5)
-
-    def fetch_oauth_token(self, token_endpoint, username, password):
-        response = requests.post(url = token_endpoint, params = { 'username': username, 'password': password }) 
-        data = response.json() 
-        token = data['access_token']
-        token_type = data['token_type']
-        auth_header = '{} {}'.format(token, token_type)
-        return auth_header
         
-    def find_and_click_element(self, name, element_type, xpath):
-        element = self.find_element(name, element_type, xpath)
-        element.click()
-        logging.info('Clicked the %s element', name)
+    def submit_form(self, username_element):
+        if self.config.auth_submitaction == "click":
+            element = self.find_element(self.config.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
+            element.click()
+            logging.info('Clicked the %s element', self.config.auth_submit_field_name)
+        elif username_element:
+            username_element.submit()
+            logging.info('Submitted the form')
         
     def find_and_fill_element(self, value, name, element_type, xpath):
         element = self.find_element(name, element_type, xpath)
@@ -185,8 +184,9 @@ class ZapAuth:
 
     # 1. Find by ID attribute (case insensitive)
     # 2. Find by Name attribute (case insensitive)
-    # 3. Find by xpath as fallback
-    def find_element(self, name_or_xpath, element_type, xpath):
+    # 3. Find by xpath
+    # 4. Find by the default xpath if all above fail
+    def find_element(self, name_or_xpath, element_type, default_xpath):
         element = None
         logging.info('Trying to find element %s', name_or_xpath)
 
@@ -205,12 +205,12 @@ class ZapAuth:
                         element = self.driver.find_element_by_xpath(name_or_xpath)
                         logging.info('Found element %s by xpath (name)', name_or_xpath)
                     except NoSuchElementException:
-                        logging.warning('Could not find element %s by id, name or xpath (name)', name_or_xpath)
+                        try:
+                            element = self.driver.find_element_by_xpath(default_xpath)
+                            logging.info('Found element %s by default xpath', default_xpath)
+                        except NoSuchElementException:
+                            logging.warning('Failed to find the element %s', name_or_xpath)
         
-        if xpath and not element:
-            element = self.driver.find_element_by_xpath(xpath)
-            logging.info('Found element %s by xpath', xpath)
-
         return element
 
     def build_xpath(self, name, find_by, element_type):
