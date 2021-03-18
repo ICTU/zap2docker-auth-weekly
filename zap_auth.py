@@ -153,23 +153,23 @@ class ZapAuth:
 
                 # if the password field was not found, we probably need to submit to go to the password page 
                 # login flow: username -> next -> password -> submit
-                self.submit_form(username_element)
+                self.submit_form(config.auth_submitaction, config.auth_submit_field_name, username_element)
                 self.find_and_fill_element(config.auth_password, 
                                             config.auth_password_field_name,
                                             "password"
                                             "//input[@type='password' or contains(@name,'ass')]")
         
         # submit
-        self.submit_form(username_element)
+        self.submit_form(config.auth_submitaction, config.auth_submit_field_name, username_element)
         
         # wait for the page to load
         time.sleep(5)
         
-    def submit_form(self, username_element):
-        if self.config.auth_submitaction == "click":
-            element = self.find_element(self.config.auth_submit_field_name, "submit", "//*[@type='submit' or @type='button']")
+    def submit_form(self, submit_action, submit_field_name, username_element):
+        if submit_action == "click":
+            element = self.find_element(submit_field_name, "submit", "//*[@type='submit' or @type='button']")
             element.click()
-            logging.info('Clicked the %s element', self.config.auth_submit_field_name)
+            logging.info('Clicked the %s element', submit_field_name)
         elif username_element:
             username_element.submit()
             logging.info('Submitted the form')
