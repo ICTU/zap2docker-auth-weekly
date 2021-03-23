@@ -139,7 +139,7 @@ class ZapAuth:
             username_element = self.find_and_fill_element(config.auth_username, 
                                             config.auth_username_field_name,
                                             "input",
-                                            "(//input[(@type='text' or @type='email' and contains(@name,'ser')) or @type='text'])[1]")
+                                            "(//input[((@type='text' or @type='email') and contains(@name,'ser')) or (@type='text' or @type='email')])[1]")
 
         # fill out the password field
         if config.auth_password:
@@ -167,7 +167,7 @@ class ZapAuth:
         
     def submit_form(self, submit_action, submit_field_name, username_element):
         if submit_action == "click":
-            element = self.find_element(submit_field_name, "submit", "//*[@type='submit' or @type='button']")
+            element = self.find_element(submit_field_name, "submit", "//*[@type='submit' or @type='button' or button]")
             element.click()
             logging.info('Clicked the %s element', submit_field_name)
         elif username_element:
@@ -215,17 +215,13 @@ class ZapAuth:
 
     def build_xpath(self, name, find_by, element_type):
         xpath = "translate(@{0}, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{1}'".format(find_by, name.lower())
-        match_type = None
 
         if element_type == 'input':
-            match_type = "@type='text' or @type='email' or not(@type)"
-        if element_type == 'password':
-            match_type = "@type='text' or @type='password'"
-        if element_type == 'submit':
-            match_type = "@type='submit' or @type='button'"
-
-        if match_type:
-            xpath = "//*[({0}) and ({1})]".format(xpath, match_type)
+            xpath = "//input[({0}) and ({1})]".format(xpath, "@type='text' or @type='email' or not(@type)")
+        elif element_type == 'password':
+            xpath = "//input[({0}) and ({1})]".format(xpath, "@type='text' or @type='password' or not(@type)")
+        elif element_type == 'submit':
+            xpath ="//*[({0}) and ({1})]".format(xpath, "@type='submit' or @type='button' or button")
         else:
             xpath = "//*[{0}]".format(xpath)
 
