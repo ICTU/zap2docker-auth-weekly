@@ -59,6 +59,7 @@ class ZapAuth:
 
         profile = webdriver.FirefoxProfile()
         profile.accept_untrusted_certs = True
+        profile.set_preference("security.tls.version.min", 1)
         self.driver = webdriver.Firefox(profile)
 
     def login(self, config: zap_config.ZapConfig, zap, target):
