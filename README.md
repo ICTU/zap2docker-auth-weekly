@@ -20,8 +20,7 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py
    --hook=/zap/auth_hook.py \
   -z "auth.loginurl=https://demo.website.net/login/index.php \
       auth.username="admin" \
-      auth.password="sandbox" \
-      auth.auto=1"
+      auth.password="sandbox""
 ```
 
 2. Running a full scan (max 10 mins spider and max 60 min scanning) with manual authentication and including an additional URL in the scope.
@@ -56,14 +55,17 @@ For more info on the different scantypes and parameters take a look at: https://
 # Extra authentication parameters
 
 ```
-auth.auto                 Automatically try to find the login fields (username, password, submit). Default True.
 auth.loginurl             The URL to the login page. Required.
 auth.username             A valid username. Required.
 auth.password             A valid password. Required.
+auth.otpsecret            The OTP secret.
 auth.username_field       The HTML name or id attribute of the username field.
 auth.password_field       The HTML name or id attribute of the password field.
 auth.submit_field         The HTML name or id attribute of the submit field.
+auth.otp_field            The HTML name or id attribute of the OTP field.
 auth.first_submit_field   The HTML name or id attribute of the first submit field (in case of username -> next page -> password -> submit).
+auth.submitaction         "Click" or "Submit" to click the login button or submit the form.
+auth.display              True or False, indicate if the the webdriver should run in Headless mode.
 auth.exclude              Comma separated list of excluded URL's (regex). Default: (logout|uitloggen|afmelden|signout)
 auth.include              Comma separated list of included URL's (regex). Default: only the target URL and everything below it.
 ```

@@ -9,19 +9,11 @@ config = zap_config.ZapConfig()
 
 # Triggered when running a script directly (ex. python zap-baseline.py ...)
 def start_docker_zap(docker_image, port, extra_zap_params, mount_dir):
-    try:
-        config.load_config(extra_zap_params)
-    except:
-        logging.error("error in start_docker_zap: %s", traceback.print_exc())
-        os._exit(1)
+    config.load_config(extra_zap_params)
 
 # Triggered when running from the Docker image
 def start_zap(port, extra_zap_params):
-    try:
-        config.load_config(extra_zap_params)
-    except:
-        logging.error("error in start_zap: %s", traceback.print_exc())
-        os._exit(1)
+    config.load_config(extra_zap_params)
 
 def zap_started(zap, target):
     try:
@@ -32,14 +24,18 @@ def zap_started(zap, target):
 
         scan_policy = 'Default Policy'
         zap.ascan.update_scan_policy(scanpolicyname=scan_policy , attackstrength="LOW")
-        zap_auth.ZapAuth().login(config, zap, target)
+        
+        auth = zap_auth.ZapAuth(config)
+        auth.authenticate(zap, target)
+
         zap_blindxss.load(config, zap)
-    except:
+    except Exception:
         logging.error("error in zap_started: %s", traceback.print_exc())
         os._exit(1)
 
     return zap, target
 
-# def zap_pre_shutdown(zap):
-#     for url in zap.spider.all_urls:
-#         logging.info("found: %s", url)
+def zap_pre_shutdown(zap):
+    logging.debug("Overview of spidered URL's:")
+    for url in zap.spider.all_urls:
+        logging.debug("found: %s", url)
