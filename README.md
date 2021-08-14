@@ -35,7 +35,7 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.p
       auth.username_field="j_username" \
       auth.password_field="j_password" \
       auth.submit_field="submit" \
-      auth.exclude=".*logout.*,http://url.com/somepath.*"
+      auth.exclude=".*logout.*,http://url.com/somepath.*" \
       auth.include="https://api.website.net.*"
 ```
 
