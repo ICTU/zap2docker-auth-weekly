@@ -75,7 +75,7 @@ class ZapAuth:
             if zap:
                 self.setup_context(zap, target)
 
-            if not self.config.auth_login_url or self.config.auth_token_endpoint:
+            if not (self.config.auth_login_url or self.config.auth_token_endpoint):
                 logging.warning(
                     'No login URL or Token Endpoint provided - skipping authentication')
                 return
