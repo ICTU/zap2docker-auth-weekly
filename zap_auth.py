@@ -140,17 +140,26 @@ class ZapAuth:
         logging.info('Fetching authentication token from endpoint')
 
         auth_header = self.fetch_oauth_token(
-            self.config.auth_token_endpoint, self.config.username, self.config.password)
-        zap.replacer.add_rule(description='AuthHeader', enabled=True, matchtype='REQ_HEADER',
-                            matchregex=False, matchstring='Authorization', replacement=auth_header)
+            self.config.auth_token_endpoint, self.config.auth_username, self.config.auth_password)
+        logging.info(
+            "Authorization header added: %s", auth_header)
+        if zap:
+            zap.replacer.add_rule(description='AuthHeader', enabled=True, matchtype='REQ_HEADER',
+                                matchregex=False, matchstring='Authorization', replacement=auth_header)
 
     def fetch_oauth_token(self, token_endpoint, username, password):
-        response = requests.post(url=token_endpoint, params={
+        response = requests.post(token_endpoint, data={
                                  'username': username, 'password': password})
         data = response.json()
-        token = data['access_token']
-        token_type = data['token_type']
-        auth_header = '{} {}'.format(token, token_type)
+        auth_header = ""
+
+        if "token" in data:
+            auth_header = data['token']
+        elif "token_type" in data:
+            token = data['access_token']
+            token_type = data['token_type']
+            auth_header = '{} {}'.format(token, token_type)
+
         return auth_header
 
     def login(self):
