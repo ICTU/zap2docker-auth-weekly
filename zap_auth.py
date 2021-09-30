@@ -80,7 +80,10 @@ class ZapAuth:
                     'No login URL or Token Endpoint provided - skipping authentication')
                 return
 
-            if self.config.auth_token_endpoint:
+            if self.config.auth_bearer_token:
+                self.add_authorization_header(
+                    zap, f"Bearer {self.config.auth_bearer_token}")
+            elif self.config.auth_token_endpoint:
                 # Simple POST request to a URL that returns a JWT token
                 self.login_from_token_endpoint(zap)
             else:
@@ -130,37 +133,29 @@ class ZapAuth:
             match = re.search('(eyJ[^"]*)', storage.get(key))
             if match:
                 auth_header = "Bearer " + match.group()
-                if zap:
-                    zap.replacer.add_rule(description='AuthHeader', enabled=True, matchtype='REQ_HEADER',
-                                          matchregex=False, matchstring='Authorization', replacement=auth_header)
-                logging.info(
-                    "Authorization header added: %s", auth_header)
+                self.add_authorization_header(zap, auth_header)
 
     def login_from_token_endpoint(self, zap):
         logging.info('Fetching authentication token from endpoint')
 
-        auth_header = self.fetch_oauth_token(
-            self.config.auth_token_endpoint, self.config.auth_username, self.config.auth_password)
-        logging.info(
-            "Authorization header added: %s", auth_header)
-        if zap:
-            zap.replacer.add_rule(description='AuthHeader', enabled=True, matchtype='REQ_HEADER',
-                                matchregex=False, matchstring='Authorization', replacement=auth_header)
-
-    def fetch_oauth_token(self, token_endpoint, username, password):
-        response = requests.post(token_endpoint, data={
-                                 'username': username, 'password': password})
+        response = requests.post(self.config.auth_token_endpoint, data={
+                                 'username': self.config.auth_username, 'password': self.config.auth_password})
         data = response.json()
-        auth_header = ""
 
         if "token" in data:
-            auth_header = data['token']
+            auth_header = f"Bearer {data['token']}"
         elif "token_type" in data:
-            token = data['access_token']
-            token_type = data['token_type']
-            auth_header = '{} {}'.format(token, token_type)
+            auth_header = f"{data['token_type']} {data['token_type']}"
 
-        return auth_header
+        if auth_header:
+            self.add_authorization_header(zap, auth_header)
+
+    def add_authorization_header(self, zap, auth_token):
+        if zap:
+            zap.replacer.add_rule(description='AuthHeader', enabled=True, matchtype='REQ_HEADER',
+                                  matchregex=False, matchstring='Authorization', replacement=auth_token)
+        logging.info(
+            "Authorization header added: %s", auth_token)
 
     def login(self):
         logging.info('authenticate using webdriver against URL: %s',
