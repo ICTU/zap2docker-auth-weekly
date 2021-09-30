@@ -19,6 +19,7 @@ class ZapConfig:
             self.auth_otp_secret = self._get_zap_param('auth.otpsecret') or ''
             self.auth_submitaction = self._get_zap_param('auth.submitaction') or 'click'
             self.auth_token_endpoint = self._get_zap_param('auth.token_endpoint') or ''
+            self.auth_bearer_token = self._get_zap_param('auth.bearer_token') or ''
             self.auth_username_field_name = self._get_zap_param('auth.username_field') or 'username'
             self.auth_password_field_name = self._get_zap_param('auth.password_field') or 'password'
             self.auth_otp_field_name = self._get_zap_param('auth.otp_field') or 'otp'
