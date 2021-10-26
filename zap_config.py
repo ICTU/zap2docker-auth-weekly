@@ -25,6 +25,8 @@ class ZapConfig:
             self.auth_otp_field_name = self._get_zap_param('auth.otp_field') or 'otp'
             self.auth_submit_field_name = self._get_zap_param('auth.submit_field') or 'login'
             self.auth_first_submit_field_name = self._get_zap_param('auth.first_submit_field') or 'next'
+            self.auth_check_delay = self._get_zap_param_float('auth.check_delay') or 5
+            self.auth_check_element = self._get_zap_param('auth.check_element') or ''
             self.auth_exclude_urls = self._get_zap_param_list('auth.exclude') or list()
             self.auth_include_urls = self._get_zap_param_list('auth.include') or list()
             self.xss_collector = self._get_zap_param('xss.collector') or ''
@@ -51,4 +53,11 @@ class ZapConfig:
             if param.find(key) > -1:
                 value = param[len(key) + 1:] in ['1', 'True', 'true']
                 logging.info('_get_zap_param_boolean %s: %s', key, value)
+                return value
+
+    def _get_zap_param_float(self, key):
+        for param in self.extra_zap_params:
+            if param.find(key) > -1:
+                value = float(param[len(key) + 1:])
+                logging.info('_get_zap_param_float %s: %s', key, value)
                 return value

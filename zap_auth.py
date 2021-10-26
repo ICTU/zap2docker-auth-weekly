@@ -8,7 +8,10 @@ import os
 import traceback
 import requests
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import localstorage
 import pyotp
 
@@ -205,7 +208,14 @@ class ZapAuth:
                          self.config.auth_submit_field_name, username_element)
 
         # wait for the page to load
-        time.sleep(5)
+        if self.config.auth_check_element:
+            try:
+                logging.info('Check element')
+                WebDriverWait(self.driver, self.config.auth_check_delay).until(EC.presence_of_element_located((By.XPATH, self.config.auth_check_element)))
+            except TimeoutException:
+                logging.info('Check element timeout')
+        else:
+            time.sleep(self.config.auth_check_delay)
 
     def submit_form(self, submit_action, submit_field_name, username_element):
         if submit_action == "click":
