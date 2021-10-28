@@ -68,6 +68,8 @@ auth.submitaction         "Click" or "Submit" to click the login button or submi
 auth.display              True or False, indicate if the the webdriver should run in Headless mode.
 auth.exclude              Comma separated list of excluded URL's (regex). Default: (logout|uitloggen|afmelden|signout)
 auth.include              Comma separated list of included URL's (regex). Default: only the target URL and everything below it.
+auth.check_delay          How long to wait after submitting the form.
+auth.check_element        Element to look for to verify login completed.
 ```
 
 # Blind XSS Payloads

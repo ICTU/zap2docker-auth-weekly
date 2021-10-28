@@ -20,6 +20,8 @@ config.auth_submit_field_name = 'login'
 config.auth_first_submit_field_name = 'next'
 config.auth_exclude_urls = list()
 config.auth_include_urls = list()
+config.check_delay = 5
+config.check_element = ''
 config.xss_collector = ''
 
 logging.basicConfig(level=logging.INFO)
