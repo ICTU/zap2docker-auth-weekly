@@ -78,18 +78,8 @@ class ZapAuth:
             if zap:
                 self.setup_context(zap, target)
 
-            if not (self.config.auth_login_url or self.config.auth_token_endpoint):
-                logging.warning(
-                    'No login URL or Token Endpoint provided - skipping authentication')
-                return
-
-            if self.config.auth_bearer_token:
-                self.add_authorization_header(
-                    zap, f"Bearer {self.config.auth_bearer_token}")
-            elif self.config.auth_token_endpoint:
-                # Simple POST request to a URL that returns a JWT token
-                self.login_from_token_endpoint(zap)
-            else:
+            # perform authentication using selenium
+            if self.config.auth_login_url:
                 # setup the webdriver
                 self.setup_webdriver()
 
@@ -98,6 +88,16 @@ class ZapAuth:
 
                 # find session cookies or tokens and set them in ZAP
                 self.set_authentication(zap, target)
+            # perform authentication using a provided Bearer token
+            elif self.config.auth_bearer_token:
+                self.add_authorization_header(
+                    zap, f"Bearer {self.config.auth_bearer_token}")
+            # perform authentication using a simple token endpoint
+            elif self.config.auth_token_endpoint:
+                self.login_from_token_endpoint(zap)
+            else:
+                logging.warning(
+                    'No login URL, Token Endpoint or Bearer token provided - skipping authentication')
 
         except Exception:
             logging.error("error in authenticate: %s", traceback.print_exc())
@@ -211,7 +211,8 @@ class ZapAuth:
         if self.config.auth_check_element:
             try:
                 logging.info('Check element')
-                WebDriverWait(self.driver, self.config.auth_check_delay).until(EC.presence_of_element_located((By.XPATH, self.config.auth_check_element)))
+                WebDriverWait(self.driver, self.config.auth_check_delay).until(
+                    EC.presence_of_element_located((By.XPATH, self.config.auth_check_element)))
             except TimeoutException:
                 logging.info('Check element timeout')
         else:

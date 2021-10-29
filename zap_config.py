@@ -45,7 +45,7 @@ class ZapConfig:
         for param in self.extra_zap_params:
             if param.find(key) > -1:
                 value = list(filter(None, param[len(key) + 1:].split(',')))
-                logging.info('_get_zap_param %s: %s', key, value)
+                logging.info('_get_zap_param_list %s: %s', key, value)
                 return value
         
     def _get_zap_param_boolean(self, key):

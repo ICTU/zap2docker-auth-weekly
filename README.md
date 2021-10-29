@@ -17,18 +17,29 @@ You can find the Docker image on [ictu/zap2docker-weekly](https://hub.docker.com
 docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -I -j \
   -t https://demo.website.net \
   -r testreport.html \
-   --hook=/zap/auth_hook.py \
+  --hook=/zap/auth_hook.py \
   -z "auth.loginurl=https://demo.website.net/login/index.php \
       auth.username="admin" \
       auth.password="sandbox""
 ```
 
-2. Running a full scan (max 10 mins spider and max 60 min scanning) with manual authentication and including an additional URL in the scope.
+2. Running an API scan with a provided Bearer token.
+```
+# First retrieve a token, for example using Curl and pass it to ZAP.
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly api-scan.py -I -j \
+  -t https://demo.website.net/api/docs/openapidocs.json \
+  -f openapi \
+  -r testreport.html \
+  --hook=/zap/auth_hook.py \
+  -z "auth.bearer_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+```
+
+3. Running a full scan (max 10 mins spider and max 60 min scanning) with manual authentication and including an additional URL in the scope.
 ```
 docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py -I -j -m 10 -T 60 \
   -t https://demo.website.net \
   -r testreport.html \
-   --hook=/zap/auth_hook.py \
+  --hook=/zap/auth_hook.py \
   -z "auth.loginurl=https://demo.website.net/login/index.php \
       auth.username="admin" \
       auth.password="sandbox" \
@@ -59,6 +70,7 @@ auth.loginurl             The URL to the login page. Required.
 auth.username             A valid username. Required.
 auth.password             A valid password. Required.
 auth.otpsecret            The OTP secret.
+auth.bearer_token         A Bearer token to use in the authorization header for each request.
 auth.username_field       The HTML name or id attribute of the username field.
 auth.password_field       The HTML name or id attribute of the password field.
 auth.submit_field         The HTML name or id attribute of the submit field.
