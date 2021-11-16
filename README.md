@@ -26,7 +26,7 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py
 2. Running an API scan with a provided Bearer token.
 ```
 # First retrieve a token, for example using Curl and pass it to ZAP.
-docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly api-scan.py -I \
+docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-api-scan.py -I \
   -t https://demo.website.net/api/docs/openapidocs.json \
   -f openapi \
   -r testreport.html \
