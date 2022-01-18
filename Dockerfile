@@ -16,13 +16,12 @@ RUN mkdir /zap/wrk \
 ADD . /zap/
 
 ADD scripts /home/zap/.ZAP_D/scripts/scripts/active/
-RUN chmod 777 /home/zap/.ZAP_D/scripts/scripts/active/
-
-RUN pip install -r /zap/requirements.txt \
-	&& chown -R zap:zap /zap/ \
-	&& chmod +x /zap/zap-baseline-custom.py
+RUN chmod 777 /home/zap/.ZAP_D/scripts/scripts/active/ \
+	&& chown -R zap:zap /zap/
 
 USER zap
+
+RUN pip install -r /zap/requirements.txt
 
 VOLUME /zap/wrk
 WORKDIR /zap

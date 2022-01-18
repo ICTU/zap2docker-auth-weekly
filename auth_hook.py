@@ -39,3 +39,6 @@ def zap_pre_shutdown(zap):
     logging.debug("Overview of spidered URL's:")
     for url in zap.spider.all_urls:
         logging.debug("found: %s", url)
+    
+    for result in zap.ajaxSpider.full_results['inScope']:
+        logging.debug("found: %s", result['url'])
