@@ -7,7 +7,7 @@ USER root
 
 RUN mkdir /zap/wrk \
 	&& cd /opt \
-	&& wget -qO- -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.29.0/geckodriver-v0.29.0-linux64.tar.gz \
+	&& wget -qO- -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz \
 	&& tar -xvzf geckodriver.tar.gz \
 	&& chmod +x geckodriver \
 	&& ln -s /opt/geckodriver /usr/bin/geckodriver \
