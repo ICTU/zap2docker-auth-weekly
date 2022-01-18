@@ -57,18 +57,14 @@ class ZapAuth:
     def setup_webdriver(self):
         logging.info('Start webdriver')
 
-        os.environ['MOZ_HEADLESS_WIDTH'] = '1920'
-        os.environ['MOZ_HEADLESS_HEIGHT'] = '1080'
+        options = webdriver.ChromeOptions()
+        if not self.config.auth_display:
+            options.add_argument('--headless')
+        options.add_argument('--ignore-certificate-errors')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
 
-        profile = webdriver.FirefoxProfile()
-        profile.accept_untrusted_certs = True
-        profile.set_preference("security.tls.version.min", 1)
-
-        options = webdriver.FirefoxOptions()
-        options.headless = not self.config.auth_display
-
-        self.driver = webdriver.Firefox(
-            firefox_profile=profile, firefox_options=options)
+        self.driver = webdriver.Chrome(options=options)
         self.driver.set_window_size(1920, 1080)
         self.driver.maximize_window()
 
