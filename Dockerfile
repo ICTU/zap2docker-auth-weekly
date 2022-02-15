@@ -1,6 +1,6 @@
 # Customized Owasp ZAP Dockerfile with support for authentication
 
-FROM owasp/zap2docker-weekly
+FROM owasp/zap2docker-stable
 LABEL maintainer="Dick Snel <dick.snel@ictu.nl>"
 
 USER root
