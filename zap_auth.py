@@ -91,6 +91,9 @@ class ZapAuth:
             # perform authentication using a simple token endpoint
             elif self.config.auth_token_endpoint:
                 self.login_from_token_endpoint(zap)
+            # authentication using API key
+            elif self.config.auth_api_key:
+                self.add_api_key(zap, self.config.auth_api_key)
             else:
                 logging.warning(
                     'No login URL, Token Endpoint or Bearer token provided - skipping authentication')
@@ -155,6 +158,12 @@ class ZapAuth:
                                   matchregex=False, matchstring='Authorization', replacement=auth_token)
         logging.info(
             "Authorization header added: %s", auth_token)
+
+    # Replacer rule for API key
+    def add_api_key(self, zap, api_key):
+        if zap:
+            zap.replacer.add_rule(description='APIKey', enabled=True, matchtype='REQ_HEADER',
+                                  matchregex=False, matchstring='api-key', replacement=api_key)
 
     def login(self):
         logging.info('authenticate using webdriver against URL: %s',

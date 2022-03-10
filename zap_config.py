@@ -30,10 +30,12 @@ class ZapConfig:
             self.auth_exclude_urls = self._get_zap_param_list('auth.exclude') or list()
             self.auth_include_urls = self._get_zap_param_list('auth.include') or list()
             self.xss_collector = self._get_zap_param('xss.collector') or ''
+            # get API key value
+            self.auth_api_key = self._get_zap_param('auth.api_key') or ''
         except Exception:
             logging.error("error in start_docker_zap: %s", traceback.print_exc())
             os._exit(1)
-        
+
     def _get_zap_param(self, key):
         for param in self.extra_zap_params:
             if param.find(key) > -1:
@@ -47,7 +49,7 @@ class ZapConfig:
                 value = list(filter(None, param[len(key) + 1:].split(',')))
                 logging.info('_get_zap_param_list %s: %s', key, value)
                 return value
-        
+
     def _get_zap_param_boolean(self, key):
         for param in self.extra_zap_params:
             if param.find(key) > -1:
