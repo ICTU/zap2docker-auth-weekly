@@ -1,39 +1,40 @@
-class LocalStorage:
+class BrowserStorage:
 
-    def __init__(self, driver) :
+    def __init__(self, driver, storage) :
         self.driver = driver
+        self.storage = storage
 
     def __len__(self):
-        return self.driver.execute_script("return window.localStorage.length;")
+        return self.driver.execute_script(f"return window.{self.storage}.length;")
 
     def items(self) :
         return self.driver.execute_script( \
-            "var ls = window.localStorage, items = {}; " \
+            f"var ls = window.{self.storage}, items = {{}}; " \
             "for (var i = 0, k; i < ls.length; ++i) " \
             "  items[k = ls.key(i)] = ls.getItem(k); " \
             "return items; ")
 
     def keys(self) :
         return self.driver.execute_script( \
-            "var ls = window.localStorage, keys = []; " \
+            f"var ls = window.{self.storage}, keys = []; " \
             "for (var i = 0; i < ls.length; ++i) " \
             "  keys[i] = ls.key(i); " \
             "return keys; ")
 
     def get(self, key):
-        return self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", key)
+        return self.driver.execute_script(f"return window.{self.storage}.getItem(arguments[0]);", key)
 
     def set(self, key, value):
-        self.driver.execute_script("window.localStorage.setItem(arguments[0], arguments[1]);", key, value)
+        self.driver.execute_script(f"window.{self.storage}.setItem(arguments[0], arguments[1]);", key, value)
 
     def has(self, key):
         return key in self.keys()
 
     def remove(self, key):
-        self.driver.execute_script("window.localStorage.removeItem(arguments[0]);", key)
+        self.driver.execute_script(f"window.{self.storage}.removeItem(arguments[0]);", key)
 
     def clear(self):
-        self.driver.execute_script("window.localStorage.clear();")
+        self.driver.execute_script(f"window.{self.storage}.clear();")
 
     def __getitem__(self, key) :
         value = self.get(key)

@@ -12,7 +12,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import localstorage
+import browserstorage
 import pyotp
 
 
@@ -124,12 +124,18 @@ class ZapAuth:
 
         logging.info('Finding authentication headers')
 
-        # try to find JWT tokens in LocalStorage and add them as Authorization header
-        storage = localstorage.LocalStorage(self.driver)
-        for key in storage.items():
-            logging.info("Found storage item: %s: %s",
-                         key, storage.get(key)[:50])
-            match = re.search('(eyJ[^"]*)', storage.get(key))
+        # try to find JWT tokens in Local Storage and Session Storage and add them as Authorization header
+        localStorage = browserstorage.BrowserStorage(self.driver, 'localStorage')
+        sessionStorage = browserstorage.BrowserStorage(self.driver, 'sessionStorage')
+
+        self.add_token_from_browser_storage(zap, localStorage)
+        self.add_token_from_browser_storage(zap, sessionStorage)
+                
+    def add_token_from_browser_storage(self, zap, browserStorage):
+        for key in browserStorage:
+            logging.info("Found Local or Session Storage item: %s: %s",
+                         key, browserStorage.get(key)[:50])
+            match = re.search('(eyJ[^"]*)', browserStorage.get(key))
             if match:
                 auth_header = "Bearer " + match.group()
                 self.add_authorization_header(zap, auth_header)
