@@ -27,6 +27,7 @@ class ZapConfig:
             self.auth_first_submit_field_name = self._get_zap_param('auth.first_submit_field') or 'next'
             self.auth_check_delay = self._get_zap_param_float('auth.check_delay') or 5
             self.auth_check_element = self._get_zap_param('auth.check_element') or ''
+            self.auth_fail_on_error = self._get_zap_param('auth.fail_on_error') or True
             self.auth_exclude_urls = self._get_zap_param_list('auth.exclude') or list()
             self.auth_include_urls = self._get_zap_param_list('auth.include') or list()
             self.xss_collector = self._get_zap_param('xss.collector') or ''

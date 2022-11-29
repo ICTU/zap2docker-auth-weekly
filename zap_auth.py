@@ -100,6 +100,9 @@ class ZapAuth:
 
         except Exception:
             logging.error("error in authenticate: %s", traceback.print_exc())
+            if self.auth_fail_on_error:
+                logging.error("exiting")
+                raise
         finally:
             self.cleanup()
 
@@ -147,13 +150,17 @@ class ZapAuth:
         logging.info('Fetching authentication token from endpoint')
 
         response = requests.post(self.config.auth_token_endpoint, data={
-                                 'username': self.config.auth_username, 'password': self.config.auth_password})
+                                 self.config.auth_username_field_name: self.config.auth_username, self.config.auth_password_field_name: self.config.auth_password})
         data = response.json()
 
         if "token" in data:
             auth_header = f"Bearer {data['token']}"
         elif "token_type" in data:
             auth_header = f"{data['token_type']} {data['token_type']}"
+        elif "access" in data:
+            auth_header = f"Bearer {data['access']}"
+        else:
+            raise Exception("Don't know how to handle auth response: " + str(data))
 
         if auth_header:
             self.add_authorization_header(zap, auth_header)
