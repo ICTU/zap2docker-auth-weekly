@@ -239,7 +239,7 @@ class ZapAuth:
     def submit_form(self, submit_action, submit_field_name, username_element):
         if submit_action == "click":
             element = self.find_element(
-                submit_field_name, "submit", "//*[@type='submit' or @type='button' or button]")
+                submit_field_name, "submit", "//*[@type='submit' or @type='button' or @role='button' or button]")
             element.click()
             logging.info('Clicked the %s element', submit_field_name)
         elif username_element:
@@ -328,7 +328,7 @@ class ZapAuth:
                                                       "@type='text' or @type='password' or not(@type)")
         elif element_type == 'submit':
             xpath = "//*[({0}) and ({1})]".format(xpath,
-                                                  "@type='submit' or @type='button' or button")
+                                                  "@type='submit' or @type='button' or @role='button' or button")
         else:
             xpath = "//*[{0}]".format(xpath)
 
