@@ -5,6 +5,11 @@ LABEL maintainer="Dick Snel <dick.snel@ictu.nl>"
 
 USER root
 
+# Install and update all add-ons
+RUN ./zap.sh -cmd -silent -addoninstallall
+RUN ./zap.sh -cmd -silent -addonupdate
+RUN cp /root/.ZAP/plugin/*.zap plugin/ || :
+
 RUN mkdir /zap/wrk \
 	&& cd /opt \
 	&& wget -qO- -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz \
