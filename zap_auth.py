@@ -8,8 +8,9 @@ import os
 import traceback
 import requests
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, ElementClickInterceptedException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import browserstorage
@@ -217,8 +218,16 @@ class ZapAuth:
 
                 # if the OTP field was not found, we probably need to submit to go to the OTP page
                 # login flow: username -> next -> password -> next -> otp -> submit
-                self.submit_form(self.config.auth_submitaction,
-                                 self.config.auth_submit_field_name, username_element)
+                try:
+                    self.submit_form(self.config.auth_submitaction,
+                                    self.config.auth_submit_field_name, username_element)
+                except ElementClickInterceptedException:
+                    # If the submit click was intercepted, a popup maybe open, press Escape to close and try again.
+                    bodyElement = self.driver.find_element_by_xpath("//body")
+                    bodyElement.send_keys(Keys.Escape)
+                    self.submit_form(self.config.auth_submitaction,
+                                    self.config.auth_submit_field_name, username_element)
+                
                 self.fill_otp()
 
         # submit
