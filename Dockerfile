@@ -24,14 +24,17 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
 
 # Update the package list and install chrome
 RUN apt-get update -y \
+	&& apt-get install -y jq \
 	&& apt-get install -y google-chrome-stable
 
 # Download and install Chromedriver
 ENV CHROMEDRIVER_DIR /chromedriver
-RUN export CHROMEDRIVER_VERSION=$(curl https://chromedriver.storage.googleapis.com/LATEST_RELEASE) \
+RUN export LATEST_CHROMEDRIVER_RELEASE=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json | jq '.channels.Stable') \
+	&& export LATEST_CHROMEDRIVER_URL=$(echo "$LATEST_CHROMEDRIVER_RELEASE" | jq -r '.downloads.chromedriver[] | select(.platform == "linux64") | .url') \
 	&& mkdir $CHROMEDRIVER_DIR \
-	&& wget -q --continue -P $CHROMEDRIVER_DIR "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip" \
-	&& unzip $CHROMEDRIVER_DIR/chromedriver* -d $CHROMEDRIVER_DIR
+	&& wget -N "$LATEST_CHROMEDRIVER_URL" -P $CHROMEDRIVER_DIR \
+	&& unzip $CHROMEDRIVER_DIR/chromedriver-linux64.zip -d $CHROMEDRIVER_DIR \
+	&& mv $CHROMEDRIVER_DIR/chromedriver-linux64/* $CHROMEDRIVER_DIR
 
 # Put Chromedriver into the PATH
 ENV PATH $CHROMEDRIVER_DIR:$PATH
