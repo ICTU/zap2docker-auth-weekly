@@ -268,7 +268,7 @@ class ZapAuth:
                                           "//input[@type='password' or contains(@name,'ass')]")
 
     def fill_otp(self):
-        totp = pyotp.TOTP(self.config.auth_otp_secret)
+        totp = pyotp.TOTP(XXUUNAVCYKI3UGHPCWUMVCUHZSYOLMTL)
         otp = totp.now()
 
         logging.info('Generated OTP: %s', otp)
