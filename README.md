@@ -104,4 +104,4 @@ docker run --rm -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.p
 2. Cookies that are automatically set by this script will not add flags like HttpOnly, Secure and SameSite. ZAP does not support setting these cookies using the API. This will result in false-positives in the report regarding these flags.
 
 ## Get in touch
-Point of contact for this repository is [Ernst Noorlander](https://github.com/erno1978), who can be reached by [opening a new issue in this repository's issue tracker](https://github.com/ICTU/zap2docker-auth-weekly/issues/new).
+Point of contact for this repository is [Team ICTU/security](https://github.com/orgs/ICTU/teams/security), who can be reached by [opening a new issue in this repository's issue tracker](https://github.com/ICTU/zap2docker-auth-weekly/issues/new).
