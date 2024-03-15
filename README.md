@@ -10,6 +10,15 @@ This project adds support to perform authenticated scans using the OWASP ZAP Doc
 
 You can find the Docker image on [ictu/zap2docker-weekly](https://hub.docker.com/r/ictu/zap2docker-weekly)
 
+# Examples limiting container memory usage
+
+1. Running a passive scan while limiting the memory the container uses to 8 GB.
+```
+docker run --rm --memory=8gb -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py -I -j -m 10 -T 60 \
+  -t https://demo.website.net \
+  -r testreport.html
+```
+
 # Examples using authentication
 
 1. Running a passive scan with automatic authentication.
