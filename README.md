@@ -12,7 +12,7 @@ You can find the Docker image on [ictu/zap2docker-weekly](https://hub.docker.com
 
 # Examples limiting container memory usage
 
-1. Running a passive scan while limiting the memory the container uses to 8 GB.
+1. Running a passive scan while limiting the memory the container uses to 8 GB. This option can be useful if memory issues occur.
 ```
 docker run --rm --memory=8gb -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-full-scan.py -I -j -m 10 -T 60 \
   -t https://demo.website.net \
