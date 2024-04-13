@@ -1,6 +1,6 @@
 # Customized Owasp ZAP Dockerfile with support for authentication
 
-FROM owasp/zap2docker-stable
+FROM softwaresecurityproject/zap-stable
 LABEL maintainer="Ernst Noorlander <ernst.noorlander@ictu.nl>"
 
 USER root
