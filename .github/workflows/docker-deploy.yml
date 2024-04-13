@@ -23,21 +23,11 @@ jobs:
           tags: ictu/zap2docker-weekly:latest
           secrets: |
             "github_token=${{ secrets.DOCKERHUB_TOKEN }}" 
+      - uses: actions/checkout@v4
 
-
-  PushContainerReadme:
-    runs-on: ubuntu-latest
-    name: Push README to Docker Hub
-    steps:
-      - name: git checkout
-        uses: actions/checkout@v2
-      - name: push README to Dockerhub
-        uses: christian-korneck/update-container-description-action@v1
-        env:
-          DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKER_PASS: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Docker Hub Description
+        uses: peter-evans/dockerhub-description@v4
         with:
-          destination_container_repo: ictu/zap2docker-weekly:latest
-          provider: dockerhub
-          short_description: 'my short description 😊'
-          readme_file: 'README.md'
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: ictu/zap2docker-weekly:latest
