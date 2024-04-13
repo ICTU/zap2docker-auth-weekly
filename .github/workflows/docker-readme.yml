@@ -1,0 +1,22 @@
+name: Docker Hub Readme
+
+on:
+  push:
+    branches: 
+      - main
+    paths:
+      - README.md
+      - .github/workflows/dockerhub-readme.yml
+
+jobs:
+  dockerHubDescription:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Docker Hub Readme
+        uses: peter-evans/dockerhub-description@v4
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+          DOCKERHUB_REPOSITORY: ictu/zap2docker-weekly
