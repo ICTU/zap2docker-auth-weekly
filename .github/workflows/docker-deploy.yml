@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  docker:
+  dockerHub:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,3 +23,14 @@ jobs:
           tags: ictu/zap2docker-weekly:latest
           secrets: |
             "github_token=${{ secrets.DOCKERHUB_TOKEN }}" 
+  dockerHubReadme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Docker Hub Readme
+        uses: peter-evans/dockerhub-description@v4
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+          DOCKERHUB_REPOSITORY: ictu/zap2docker-weekly
