@@ -1,6 +1,6 @@
 # Customized Owasp ZAP Dockerfile with support for authentication
 
-FROM softwaresecurityproject/zap-stable
+FROM --platform=linux/amd64 softwaresecurityproject/zap-stable
 LABEL maintainer="Ernst Noorlander <ernst.noorlander@ictu.nl>"
 
 USER root
